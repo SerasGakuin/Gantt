@@ -38,7 +38,9 @@ class GanttChart {
     }
     this.updateHearing();
     this.updateWeeklyManagement()
-    this.updateMonthlyAchievement();
+    if (this.monthlyAchievementSheet) {
+      this.updateMonthlyAchievement();
+    }
     this.updateMonthlyFirst();
     this.updateMonthlyManagement();
     this.updateMonthlyPlan();
@@ -84,7 +86,10 @@ class GanttChart {
     if (!this.existGantt) { return }
 
     // ガントチャートから参考書名を取得
+    console.log(this.alreadyDeletedColumns)
+    console.log(this.startRow)
     var [from, to] = this.alreadyDeletedColumns ? ["B", "C"] : ["D", "E"]
+    console.log(from+this.startRow.toString()+":"+to+(this.endRow-1).toString())
     var catAndBookArray = this.ganttSheet.getRange(from+this.startRow.toString()+":"+to+(this.endRow-1).toString()).getDisplayValues();
 
     // 「マスター」から参考書の情報を取得
@@ -111,11 +116,13 @@ class GanttChart {
       this.ganttSheet.deleteColumns(2,2);
       this.alreadyDeletedColumns = true;
     }
-    this.ganttSheet.getRange(1,8).clearContent()
-    this.ganttSheet.getRange(1,8).setValue("ID")
+    this.ganttSheet.getRange("A"+(this.startRow-2).toString()).clearContent()
+    this.ganttSheet.getRange("A"+(this.startRow-2).toString()).setValue("ID")
 
     // A列にIDを表示する関数を挿入
     var formula = '=ARRAYFORMULA(IFNA(XLOOKUP(C'+ (this.startRow-1).toString() +':C, \'個人マスター\'!D2:D, \'個人マスター\'!A2:A, ""), ""))';
+
+    console.log(formula)
     this.ganttSheet.getRange('A'+(this.startRow-1).toString()).setFormula(formula);
 
   }
@@ -199,6 +206,7 @@ class GanttChart {
       }
     }
 
+    this.manageSheet.getRange("G"+(rowToPaste-1)+":G").clearContent();
     this.manageSheet.getRange("F"+rowToPaste+":K"+rowToPaste).setFormulas(formulas);
     
     for(var i = 0 ; i < 5; i++){
