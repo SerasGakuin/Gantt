@@ -42,7 +42,6 @@ class GanttChart {
   }
   
 
-
   insertIndividualMasterSheet() {
     /**
      * ①新しいシート「個人マスター」を作成する
@@ -154,6 +153,7 @@ class GanttChart {
     var manageUekata = SpreadsheetApp.openById("10KzulodqrBj5EIGLIhr6n0hjZvMPLKI3N0mbHmrauoQ").getSheetByName("月間管理");
     var formulas = manageUekata.getRange("F2:K2").getFormulas();
 
+    // 参考書名が入力されている最後の行の2行下に、新たな関数をペーストする
     var rowToPaste = this.manageSheet.getRange(sheet.getMaxRows(), 9).getNextDataCell(SpreadsheetApp.Direction.UP).getRow() + 2;
 
     //貼り付ける関数内で使用しているG列の範囲を、貼り付ける行に合わせる
@@ -182,7 +182,6 @@ class GanttChart {
      * ⑰以下、列とそれに対応する列の幅を書いている。
      * ⑱その他移行時にテーマが崩れた部分を直す: 日付のフォーマットをDDDにする
      */
-
     
 
     // 関数をコピペ
@@ -246,24 +245,6 @@ class GanttChart {
     this.monthlyFirstSheet.setColumnWidths(60,2,60)
   }
 
-}
-
-function toGantt(ss) {
-
-
-  insertIndividualMasterSheet(ss, existGantt, alreadyDeletedColumns, startRow, endRow);
-  updatePercentageFormulas(ss, startRow, endRow);
-  updateGanttChartIdView(ss, alreadyDeletedColumns,startRow);
-  updateMonthlyAchievement();
-  updateMonthlyFirst();
-  updateMonthlyManagement();
-  updateMonthlyPlan();
-}
-
-function test() {
-
-  var ganttSheet = new GanttChart(SpreadsheetApp.getActiveSpreadsheet())
-  console.log(ganttSheet.alreadyDeletedColumns)
 }
 
 
