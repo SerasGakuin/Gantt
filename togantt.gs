@@ -1,13 +1,53 @@
 var ss = SpreadsheetApp.getActiveSpreadsheet();
 
+class GanttChart {
+
+  constructor(ss) {
+    this.ss = ss;
+    this.gantt = this.ss.getSheetByName("ガントチャート")
+
+    // 「ガントチャート」が存在するか
+    this.existGantt = !!this.gantt
+
+    // ガントチャートのID列は3列から1列に変更済みか
+    this.alreadyDeletedColumns = this.existGantt ? this.gantt.getRange("C3").getValue() === "■参考書ガントチャート" : false ;
+    
+    // 「ガントチャート」の「英単語・英熟語」は何行目か
+    this.startRow = this.existGantt ? getStartRow(this.ss, this.alreadyDeletedColumns) : null ;
+
+    // 「ガントチャート」の「英語（時間）」は何行目か
+    this.endRow = existGantt ? getRowsWithEnglishTime(this.ss, alreadyDeletedColumns) : null ;
+
+  }
+
+}
+
 function toGantt(ss) {
   /**
    * ssで指定されたシートに、一連のガントチャート移管作業を適用する関数
    */
-  insertIndividualMasterSheet();
-  createIndividualMaster();
-  updatePercentageFormulas();
-  updateGanttChartIdView();
+  if (!ss) {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+  }
+
+  //ssを受け取り、その個体差をチェックする
+  var gantt = ss.getSheetByName("ガントチャート")
+
+  // 「ガントチャート」が存在するか
+  var existGantt = !!gantt
+
+  // ガントチャートのID列は3列から1列に変更済みか
+  var alreadyDeletedColumns = existGantt ? gantt.getRange("C3").getValue() === "■参考書ガントチャート" : false ;
+  
+  // 「ガントチャート」の「英単語・英熟語」は何行目か
+  var startRow = existGantt ? getStartRow(ss, alreadyDeletedColumns) : null ;
+
+  // 「ガントチャート」の「英語（時間）」は何行目か
+  var endRow = existGantt ? getRowsWithEnglishTime(ss, alreadyDeletedColumns) : null ;
+
+  insertIndividualMasterSheet(ss, existGantt, alreadyDeletedColumns, startRow, endRow);
+  updatePercentageFormulas(ss, startRow, endRow);
+  updateGanttChartIdView(ss, alreadyDeletedColumns,startRow);
   updateMonthlyAchievement();
   updateMonthlyFirst();
   updateMonthlyManagement();
@@ -16,100 +56,74 @@ function toGantt(ss) {
 
 function test() {
 
-  var lastRow = ss.getSheetByName("マスター").getLastRow()
-  console.log(lastRow)
-}
-
-function getRowsWithEnglishTime(ss) {
-  /**
-   * 英語(時間)と書いてある行を検索し、行数を返す関数。
-   */
-
-  //ssが指定されていないとき：現在のシート
-  if (!ss) {
-    ss = SpreadsheetApp.getActiveSpreadsheet();
-  }
-
-  gantt = ss.getSheetByName("ガントチャート");
-  // ID列が１列か３列かによって、検索する列を変更
-  if (gantt.getRange("C3").getValue() == "■参考書ガントチャート") {
-    var range = "B:B"
-  } else {
-    var range = "D:D"
-  }
-
-  var values = gantt.getRange(range).getValues();
-  var rownumber = null
-
-  for (var i = 0; i < values.length; i++) {
-    if (values[i][0] == "英語(時間)") {
-      rownumber = i + 1
-      break
-    }
-    if (values[i][0] == "英語(時間）") {
-      rownumber = i + 1
-      break 
-    }
-  }
-  
-  // rowsWithEnglishTime を必要に応じて他の処理に使用することができます
-  return rownumber;
+  var gantt = new GanttChart(SpreadsheetApp.getActiveSpreadsheet())
+  console.log(gantt)
 }
 
 
-function insertIndividualMasterSheet(ss) {
+
+
+
+// TODO: 右から2列目に移動
+function insertIndividualMasterSheet(ss, alreadyDeletedColumns, startRow, endRow) {
   /**
    * ①新しいシート「個人マスター」を作成する
    * ②A1に「ID」、B1に「カテゴリー」、C1に「教科」、D1に「教材・学習内容」、E1に「月間目標」、F1に「単位当たり処理量」と入力する。(デザインは未定。G1の標準時間は廃止)
+   * ③D列に「ガントチャート」シートを参照しながら、該当生徒の使用する参考書を全て記入する。
+   * ④それぞれの参考書に対応する教科名をC列、カテゴリーをD列に入力(教科名、カテゴリー名はシート「マスター」に準拠)
+   * ⑤シート「マスター」のそれぞれの参考書に対応する「CAT」をID欄に入力。またシート「マスター」にあるそれぞれの参考書に対応する「月間目標」、「単位当たり処理量」をそれぞれシート「個人マスター」のE列、F列、G列に入力する。
    */
+
+  if (!ss) {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+  }
+  if (!alreadyDeletedColumns) {
+    alreadyDeletedColumns = true;
+  }
+  if (!startRow) {
+    startRow = getStartRow(ss, alreadyDeletedColumns);
+  }
+  if (!endRow) {
+    endRow = getRowsWithEnglishTime(ss, alreadyDeletedColumns);
+  }
 
   var individualMasterSheet = ss.getSheetByName("個人マスター")
   if (!individualMasterSheet) {
     individualMasterSheet = ss.insertSheet().setName("個人マスター")
   }
 
+  // 「個人マスター」を右から２番目に移動 
+  ss.setActiveSheet(individualMasterSheet);
+  ss.moveActiveSheet(ss.getNumSheets() - 1);
+
   // 「個人マスター」のID列に何も値がなかったら、シート全体を初期化して空白にする 
-  var data = individualMasterSheet.getRange('A2:A' + sheet.getLastRow()).getValues();
+  var data = individualMasterSheet.getRange('A2:A' + individualMasterSheet.getLastRow()).getValues();
   // A列の二行目以降が全て空かどうかを判定
-  var isEmpty = data.every(function(row) {
-    return row[0] === "";
-  });
-  if (isEmpty) {
-    sheet.clear();
-  }
+  var isEmpty = data.every(function(row) { return row[0] === ""; });
 
-  master.getRange(1,1,1,6).setValues([["ID","カテゴリー","教科","教材・学習内容","月間目標","単位当たり処理量"]])
-}
+  // すでに個人マスターに情報がある場合、処理を終了
+  if (!isEmpty) { return }
 
-// TODO
-function createIndividualMaster(ss) {
-  /**
-   * ③D列に「ガントチャート」シートを参照しながら、該当生徒の使用する参考書を全て記入する。
-   * ④それぞれの参考書に対応する教科名をC列、カテゴリーをD列に入力(教科名、カテゴリー名はシート「マスター」に準拠)
-   * ⑤シート「マスター」のそれぞれの参考書に対応する「CAT」をID欄に入力。またシート「マスター」にあるそれぞれの参考書に対応する「月間目標」、「単位当たり処理量」をそれぞれシート「個人マスター」のE列、F列、G列に入力する。
-   */
-  
-  var gantt = ss.getSheetByName("ガントチャート");
-  var englishRow = getRowsWithEnglishTime(ss);
-  var masterArray = ss.getSheetByName("マスター").getRange(3, 4, lastRow, 7).getValues();
-  var ganttscheme = gantt.getRange(11, 3, englishRow - 10, 1).getDisplayValues()
-  var newscheme = ganttscheme[0]
-  for (var i = 1; i < ganttscheme.length; i++) {
-    if (ganttscheme[i][0] === null || ganttscheme[i][0] === ""){
-      
-    }else{
-      newscheme.push(ganttscheme[i][0])
-    }
-  }
-  Logger.log(newscheme)
-  var newnewscheme = transpose([newscheme])
-  Logger.log(newnewscheme)
-  var master = ss.getSheetByName("個人マスター")
-  master.getRange(2,4,newnewscheme.length,1).setValues(newnewscheme)
+  individualMasterSheet.clear();
+
+  // 列名を追加
+  individualMasterSheet.getRange(1,1,1,6).setValues([["ID","カテゴリー","教科","教材・学習内容","月間目標","単位当たり処理量"]])
+
+  // ガントチャートから参考書名を取得
+  var [from, to] = alreadyDeletedColumns ? ["B", "C"] : ["D", "E"]
+  var catAndBookArray = ss.getSheetByName("ガントチャート").getRange(from+startRow.toString()+":"+to+(endRow-1).toString()).getDisplayValues();
+
+  // 「マスター」から参考書の情報を取得
+  var masterSheet = ss.getSheetByName("マスター");
+  var masterArray = masterSheet.getRange(3, 4, masterSheet.getLastRow(), 7).getValues();
+
+  // 「個人マスター」に貼り付ける配列を作成 
+  var newSheme = createIndividualMasterArray(catAndBookArray, masterArray);
+  individualMasterSheet.getRange(2,4,newSheme.length,1).setValues(newSheme)
 }
 
 
-function updateGanttChartIdView() {
+function updateGanttChartIdView(ss, alreadyDeletedColumns, startRow) {
   /**
    * ⑥続いてシート「ガントチャート」に関する変更を行う。「列B-Cを削除」をクリックして、B、C列を削除する。
    * ⑦セルA9の「Code」を「ID」に変える。
@@ -118,7 +132,7 @@ function updateGanttChartIdView() {
 
   // ID列が3行になっている時だけ、BC列を削除
   var gantt = ss.getSheetByName("ガントチャート")
-  if (gantt.getRange("C3").getValue() != "■参考書ガントチャート") {
+  if (!alreadyDeletedColumns) {
     gantt.deleteColumns(2,2);
   }
   gantt.getRange(1,8).clearContent()
@@ -131,7 +145,7 @@ function updateGanttChartIdView() {
 }
 
 
-function updatePercentageFormulas() {
+function updatePercentageFormulas(ss, endRow) {
   /**
    * ⑨スプレッドシート「上堅さん検証用_0331」のシート「ガントチャート」のセルF114からF150を各生徒の英語の必要時間セルから社会の必要時間比のセルまでコピーする。
    * その後、コピペした後のセルを同じ行のG列、MからBQまでオートフィル。参考書の時間が書いてある最終列にコピー。
@@ -140,8 +154,7 @@ function updatePercentageFormulas() {
   //コピー元とコピー先のシートを指定
   var gantt = ss.getSheetByName("ガントチャート");
   var ganttUekata = SpreadsheetApp.openById("10KzulodqrBj5EIGLIhr6n0hjZvMPLKI3N0mbHmrauoQ").getSheetByName("ガントチャート");
-  var englishRow = getRowsWithEnglishTime();
-  var toRange = function (start, end) { return  start + englishRow.toString() + ":" + end + (englishRow + 36).toString() }
+  var toRange = function (from, to) { return  from + endRow.toString() + ":" + to + (endRow + 36).toString() }
 
   //F列に関数をコピー
   var formulas = ganttUekata.getRange("F114:F150").getFormulas();
