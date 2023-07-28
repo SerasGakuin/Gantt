@@ -14,6 +14,12 @@ function toGantt(ss) {
   updateMonthlyPlan();
 }
 
+function test() {
+
+  var lastRow = ss.getSheetByName("マスター").getLastRow()
+  console.log(lastRow)
+}
+
 function getRowsWithEnglishTime(ss) {
   /**
    * 英語(時間)と書いてある行を検索し、行数を返す関数。
@@ -50,6 +56,7 @@ function getRowsWithEnglishTime(ss) {
   return rownumber;
 }
 
+
 function insertIndividualMasterSheet(ss) {
   /**
    * ①新しいシート「個人マスター」を作成する
@@ -82,8 +89,9 @@ function createIndividualMaster(ss) {
    * ⑤シート「マスター」のそれぞれの参考書に対応する「CAT」をID欄に入力。またシート「マスター」にあるそれぞれの参考書に対応する「月間目標」、「単位当たり処理量」をそれぞれシート「個人マスター」のE列、F列、G列に入力する。
    */
   
-  var englishRow = getRowsWithEnglishTime(ss)
-  
+  var gantt = ss.getSheetByName("ガントチャート");
+  var englishRow = getRowsWithEnglishTime(ss);
+  var masterArray = ss.getSheetByName("マスター").getRange(3, 4, lastRow, 7).getValues();
   var ganttscheme = gantt.getRange(11, 3, englishRow - 10, 1).getDisplayValues()
   var newscheme = ganttscheme[0]
   for (var i = 1; i < ganttscheme.length; i++) {
@@ -145,13 +153,6 @@ function updatePercentageFormulas() {
   gantt.getRange(toRange("H", "L")).clearContent();
 }
 
-function test() {
-
-  var manageUekata = SpreadsheetApp.openById("10KzulodqrBj5EIGLIhr6n0hjZvMPLKI3N0mbHmrauoQ").getSheetByName("月間管理");
-  var formulas = manageUekata.getRange("F2:K2").getFormulas();
-  console.log(formulas)
-}
-
 
 function updateMonthlyAchievement() {
   /**
@@ -198,7 +199,7 @@ function updateMonthlyManagement() {
 
 }
 
-// TODO
+
 function updateMonthlyPlan() {
   /**
    * ⑭次に、シート「今月プラン」に関する変更を行う。まずA列を選択し、右クリックしたのち、「列を非表示」を選択して、A列を非表示にする。
@@ -210,9 +211,11 @@ function updateMonthlyPlan() {
 
   var monthlyPlanSheet = ss.getSheetByName("今月プラン")
 
+  // 関数をコピペ
   var monthlyPlanUekata = SpreadsheetApp.openById("10KzulodqrBj5EIGLIhr6n0hjZvMPLKI3N0mbHmrauoQ").getSheetByName("今月プラン");
   monthlyPlanSheet.getRange("B4:D19").setFormulas(monthlyPlanUekata.getRange("B4:D19").getFormulas());
 
+  // 行や列のサイズを変更
   monthlyPlanSheet.hideColumn(monthlyPlanSheet.getRange("A1"))
   monthlyPlanSheet.setRowHeights(4,16,32)
   monthlyPlanSheet.setColumnWidth(2,40)
@@ -229,36 +232,45 @@ function updateMonthlyPlan() {
   monthlyPlanSheet.setColumnWidths(36,2,60)
   monthlyPlanSheet.setColumnWidths(40,2,60)
 
+  // 曜日の表示フォーマットを"ddd"に統一
+  monthlyPlanSheet.getRange("X3:AG3").setFormulas(monthlyPlanUekata.getRange("X3:AG3").getFormulas());
+
 }
 
-// TODO
+
 function updateMonthlyFirst() {
   /**
    * ⑲次にシート「月初」に関する変更を行う。⑭、⑮と同じ操作を行う。
    * ⑳⑯、⑰同様、行と列それぞれの大きさを変える。
    */
+
+  var monthlyFirstSheet = ss.getSheetByName("月初")
+
+  // 関数をコピペ
+  var monthlyFirstUekata = SpreadsheetApp.openById("10KzulodqrBj5EIGLIhr6n0hjZvMPLKI3N0mbHmrauoQ").getSheetByName("今月プラン");
+  monthlyFirstSheet.getRange("B4:D19").setFormulas(monthlyFirstUekata.getRange("B4:D19").getFormulas());
   
-  var monthfirst = ss.getSheetByName("月初")
-  monthfirst.hideColumn(monthfirst.getRange("A1"))
-  monthfirst.setRowHeights(4,16,32)
-  monthfirst.setColumnWidth(2,40)
-  monthfirst.setColumnWidths(3,2,224)
-  monthfirst.setColumnWidths(5,7,49)
-  monthfirst.setColumnWidth(12,230)
-  monthfirst.setColumnWidth(15,174)
-  monthfirst.setColumnWidths(18,2,204)
-  monthfirst.setColumnWidth(20,40)
-  monthfirst.setColumnWidths(21,2,224)
-  monthfirst.setColumnWidths(23,7,49)
-  monthfirst.setColumnWidth(30,230)
-  monthfirst.setColumnWidths(32,7,140)
-  monthfirst.setColumnWidths(41,2,224)
-  monthfirst.setColumnWidths(43,10,33)
-  monthfirst.setColumnWidth(54,168)
-  monthfirst.setColumnWidth(55,380)
-  monthfirst.setColumnWidth(59,380)
-  monthfirst.setColumnWidths(56,2,60)
-  monthfirst.setColumnWidths(60,2,60)
+  // 行や列のサイズを変更
+  monthlyFirstSheet.hideColumn(monthlyFirstSheet.getRange("A1"))
+  monthlyFirstSheet.setRowHeights(4,16,32)
+  monthlyFirstSheet.setColumnWidth(2,40)
+  monthlyFirstSheet.setColumnWidths(3,2,224)
+  monthlyFirstSheet.setColumnWidths(5,7,49)
+  monthlyFirstSheet.setColumnWidth(12,230)
+  monthlyFirstSheet.setColumnWidth(15,174)
+  monthlyFirstSheet.setColumnWidths(18,2,204)
+  monthlyFirstSheet.setColumnWidth(20,40)
+  monthlyFirstSheet.setColumnWidths(21,2,224)
+  monthlyFirstSheet.setColumnWidths(23,7,49)
+  monthlyFirstSheet.setColumnWidth(30,230)
+  monthlyFirstSheet.setColumnWidths(32,7,140)
+  monthlyFirstSheet.setColumnWidths(41,2,224)
+  monthlyFirstSheet.setColumnWidths(43,10,33)
+  monthlyFirstSheet.setColumnWidth(54,168)
+  monthlyFirstSheet.setColumnWidth(55,380)
+  monthlyFirstSheet.setColumnWidth(59,380)
+  monthlyFirstSheet.setColumnWidths(56,2,60)
+  monthlyFirstSheet.setColumnWidths(60,2,60)
 }
 
 
