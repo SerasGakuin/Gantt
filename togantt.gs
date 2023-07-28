@@ -6,10 +6,12 @@ class GanttChart {
     this.ganttSheet              = this.ss.getSheetByName("ガントチャート")
     this.individualMasterSheet   = this.ss.getSheetByName("個人マスター")
     this.masterSheet             = this.ss.getSheetByName("マスター");
+    this.hearingSheet            = this.ss.getSheetByName("ヒアリング");
+    this.weeklySheet             = this.ss.getSheetByName("週間管理");
     this.monthlyAchievementSheet = this.ss.getSheetByName("月間実績");
     this.manageSheet             = this.ss.getSheetByName("月間管理");
     this.monthlyPlanSheet        = this.ss.getSheetByName("今月プラン");
-    this.monthlyFirstSheet       = this.ss.getSheetByName("月初")
+    this.monthlyFirstSheet       = this.ss.getSheetByName("月初");
 
     // 「ガントチャート」が存在するか
     this.existGantt = !!this.ganttSheet
@@ -29,15 +31,17 @@ class GanttChart {
     /**
      * ssで指定されたシートに、一連のガントチャート移管作業を適用する関数
      */
-    insertIndividualMasterSheet();
+    this.insertIndividualMasterSheet();
     if (this.existGantt) {
-      updateGanttChartIdView();
-      updatePercentageFormulas();
+      this.updateGanttChartIdView();
+      this.updatePercentageFormulas();
     }
-    updateMonthlyAchievement();
-    updateMonthlyFirst();
-    updateMonthlyManagement();
-    updateMonthlyPlan();
+    this.updateHearing();
+    this.updateWeeklyManagement()
+    this.updateMonthlyAchievement();
+    this.updateMonthlyFirst();
+    this.updateMonthlyManagement();
+    this.updateMonthlyPlan();
 
   }
   
@@ -54,15 +58,20 @@ class GanttChart {
     if (!this.individualMasterSheet) {
       this.individualMasterSheet = this.ss.insertSheet().setName("個人マスター")
     }
+    this.masterSheet.getRange("I:I").setNumberFormat("0.##")
 
     // 「個人マスター」を右から２番目に移動 
     this.ss.setActiveSheet(this.individualMasterSheet);
     this.ss.moveActiveSheet(this.ss.getNumSheets() - 1);
 
     // 「個人マスター」のID列に何も値がなかったら、シート全体を初期化して空白にする 
-    var data = this.individualMasterSheet.getRange('A2:A' + this.individualMasterSheet.getLastRow()).getValues();
+    var data = this.individualMasterSheet.getRange(2, 1, 1000, 1).getValues();
     // A列の二行目以降が全て空かどうかを判定
     var isEmpty = data.every(function(row) { return row[0] === ""; });
+
+    this.individualMasterSheet.setColumnWidth(1, 70);
+    this.individualMasterSheet.setColumnWidth(4, 300);
+    this.individualMasterSheet.setColumnWidth(5, 200);
 
     // すでに個人マスターに情報がある場合、処理を終了
     if (!isEmpty) { return }
@@ -83,7 +92,10 @@ class GanttChart {
 
     // 「個人マスター」に貼り付ける配列を作成 
     var newSheme = createIndividualMasterArray(catAndBookArray, masterArray);
-    this.individualMasterSheet.getRange(2,4,newSheme.length,1).setValues(newSheme)
+
+    console.log(newSheme)
+    this.individualMasterSheet.getRange(2,1,newSheme.length,newSheme[0].length).setValues(newSheme)
+
   }
 
 
@@ -103,7 +115,7 @@ class GanttChart {
     this.ganttSheet.getRange(1,8).setValue("ID")
 
     // A列にIDを表示する関数を挿入
-    var formula = '=ARRAYFORMULA(IFNA(XLOOKUP(C'+ (this.startRow).toString() +':C, \'個人マスター\'!D2:D, \'個人マスター\'!A2:A, ""), ""))';
+    var formula = '=ARRAYFORMULA(IFNA(XLOOKUP(C'+ (this.startRow-1).toString() +':C, \'個人マスター\'!D2:D, \'個人マスター\'!A2:A, ""), ""))';
     this.ganttSheet.getRange('A'+(this.startRow-1).toString()).setFormula(formula);
 
   }
@@ -117,7 +129,9 @@ class GanttChart {
 
     //コピー元とコピー先のシートを指定
     var ganttUekata = SpreadsheetApp.openById("10KzulodqrBj5EIGLIhr6n0hjZvMPLKI3N0mbHmrauoQ").getSheetByName("ガントチャート");
-    var toRange = function (from, to) { return  from + this.endRow.toString() + ":" + to + (this.endRow + 36).toString() }
+
+    var endRow = this.endRow;
+    var toRange = function (from, to) { return  from + endRow.toString() + ":" + to + (endRow + 36).toString() }
 
     //F列に関数をコピー
     var formulas = ganttUekata.getRange("F114:F150").getFormulas();
@@ -126,9 +140,22 @@ class GanttChart {
 
     // FからBQ列まで関数をオートフィル、その後HからL列の関数を消去
     sourceRange.autoFill(this.ganttSheet.getRange(toRange("F", "BQ")), SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
+    this.ganttSheet.getRange(toRange("F", "BQ")).setNumberFormat("0.##")
     this.ganttSheet.getRange(toRange("H", "L")).clearContent();
   }
 
+  updateHearing() {
+
+    if (this.hearingSheet.getRange("B2").getValue() === "ChatGPTからの提案") {
+      return 
+    }
+    this.hearingSheet.setRowHeights(1, 1, 120);
+    this.hearingSheet.getRange("A1").setValue("生徒に関する情報を入れてください。→");
+    this.hearingSheet.getRange("A1").setHorizontalAlignment("right");
+    this.hearingSheet.getRange("B2").setValue("ChatGPTからの提案")
+    this.hearingSheet.getRange("C1").setFormula("=displayKakomon()");
+    this.hearingSheet.getRange("B3:B16").clearContent();
+  }
 
   updateMonthlyAchievement() {
     /**
@@ -136,11 +163,20 @@ class GanttChart {
      * ⑪A4セルにIDと入力。
      */
 
-    if (this.monthlyAchievementSheet.getRange("B4").getValue() === "参考書") {
+    if (this.monthlyAchievementSheet.getRange("A4").getValue() === "参考書") {
       this.monthlyAchievementSheet.insertColumnBefore(1)
     }
     this.monthlyAchievementSheet.setColumnWidth(1,120)
     this.monthlyAchievementSheet.getRange("A4").setValue("ID")
+  }
+
+  updateWeeklyManagement() {
+    
+    var weeklySheet = this.weeklySheet;
+    var colList = ["F", "N", "V", "AD", "AL"]
+    colList.forEach(function(col){
+      weeklySheet.getRange(col + ":" + col).setNumberFormat("0.##")
+    })
   }
 
 
@@ -154,7 +190,7 @@ class GanttChart {
     var formulas = manageUekata.getRange("F2:K2").getFormulas();
 
     // 参考書名が入力されている最後の行の2行下に、新たな関数をペーストする
-    var rowToPaste = this.manageSheet.getRange(sheet.getMaxRows(), 9).getNextDataCell(SpreadsheetApp.Direction.UP).getRow() + 2;
+    var rowToPaste = this.manageSheet.getRange(this.manageSheet.getMaxRows(), 9).getNextDataCell(SpreadsheetApp.Direction.UP).getRow() + 2;
 
     //貼り付ける関数内で使用しているG列の範囲を、貼り付ける行に合わせる
     for (var i = 0; i < formulas[0].length; i++) {
