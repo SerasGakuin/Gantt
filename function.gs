@@ -7,6 +7,11 @@
   - displayMonthlyDataFromGantt : 指定された年月の月間実績をガントチャートから取得して、”月間実績”シートに表示する関数
 */
 
+ /**
+* @type {(a: any) => any}
+*/
+var transpose = a=> a[0].map((_, c) => a.map(r => r[c]))
+
 
 function AdjustMonthView(){
   /**

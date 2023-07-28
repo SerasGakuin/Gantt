@@ -1,6 +1,13 @@
 {
   "timeZone": "Asia/Tokyo",
   "dependencies": {
+    "libraries": [
+      {
+        "userSymbol": "GASUnit",
+        "version": "14",
+        "libraryId": "1Bnt8-tN4ddGVzXXIkzV_AtuuMzdlmlSyKWO7KS4TAVQYgM2GJT5WC9eU"
+      }
+    ]
   },
   "exceptionLogging": "STACKDRIVER",
   "runtimeVersion": "V8"
