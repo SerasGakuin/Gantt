@@ -54,8 +54,6 @@ function week5Plan() {
 
 // UTILITY FUNCTIONS ===========================================================================================================================================
 
-const transpose = a=> a[0].map((_, c) => a.map(r => r[c]));
-
 function isArrayEmpty(array) {
   // 2次元配列の全ての要素をチェックし、空の配列であることを確かめる
   for(var i = 0; i < array.length; i++) {
