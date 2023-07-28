@@ -41,27 +41,31 @@ function getRowsWithEnglishTime(ss, alreadyDeletedColumns) {
   gantt = ss.getSheetByName("ガントチャート");
   // ID列が１列か３列かによって、検索する列を変更
   if (alreadyDeletedColumns) {
-    var range = "B:B"
+    var ranges = ["B:B", "C:C"]
   } else {
-    var range = "D:D"
+    var ranges = ["D:D", "E:E"]
   }
 
-  var values = gantt.getRange(range).getValues();
-  var rownumber = null
+  for (var range of ranges) {
 
-  for (var i = 0; i < values.length; i++) {
-    if (values[i][0] == "英語(時間)") {
-      rownumber = i + 1
-      break
+    var values = gantt.getRange(range).getValues();
+    var rownumber = null
+
+    for (var i = 0; i < values.length; i++) {
+      if (((values[i][0]).toString()).replace(/（/g, '(').replace(/）/g, ')') == "英語(時間)") {
+        rownumber = i + 1
+        break
+      }
     }
-    if (values[i][0] == "英語(時間）") {
-      rownumber = i + 1
-      break 
+    if (rownumber !== null) { 
+      return rownumber
     }
   }
+
   
+
   // rowsWithEnglishTime を必要に応じて他の処理に使用することができます
-  return rownumber;
+  return null;
 }
 
 function vlookupPartial(array, searchKey, searchInd, returnInd) {
