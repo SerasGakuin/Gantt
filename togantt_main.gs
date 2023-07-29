@@ -1,5 +1,42 @@
+function test() {
+  var ganttChart = new GanttChart(SpreadsheetApp.openById("1TMhJ9CTq0zXY1IaOfxraM_cAAMvwZn42TuUtwEB4KTw"));
+  ganttChart.toGantt();
+}
+
+function fix() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet()
+  var idArray = ss.getSheetByName("移管").getRange(1, 1, 19, 7).getValues();
+  var spreadsheetIds = transpose(idArray)[1];
+  var fromIds = transpose(idArray)[6].reverse();
+
+  var folder = DriveApp.getFolderById("1wJXnHda8183QMPqm058mkxFcHbq-9oER");
+
+  for(let i=0;i<spreadsheetIds.length;i++){
+    ssTo = SpreadsheetApp.openById(spreadsheetIds[i])
+    ssFrom = SpreadsheetApp.openById(fromIds[i])
+    if(!ssFrom.getSheetByName("月初")){
+      console.log(ssTo.getName())
+      continue
+    }
+    
+
+    ssTo.getSheetByName("月初").getRange("BK2:BO19").setValues(ssFrom.getSheetByName("月初").getRange("BK2:BO19").getValues())
+  }
+
+}
+
+//任意のフォルダにファイルを移動させるサンプルコード
+function moveFile(fileId) {
+  
+  let folder = DriveApp.getFolderById("1Xz-dUPc3iNU7BSTF80Z6AsZ42iwv3eOj"); //任意のフォルダを指定してください
+  let file = DriveApp.getFileById(fileId);
+  file.moveTo(folder);
+}
+
 function copySpreadsheets() {
   var newSpreadsheetIds = [];  // 新しいスプレッドシートのIDを格納するための配列を初期化します。
+
+  var folder = DriveApp.getFolderById("1wJXnHda8183QMPqm058mkxFcHbq-9oER");
   
   var ss = SpreadsheetApp.getActiveSpreadsheet()
   var idArray = ss.getSheetByName("移管").getRange(1, 1, 20, 3).getValues();
@@ -8,11 +45,12 @@ function copySpreadsheets() {
   for(var i = 0; i < spreadsheetIds.length; i++) {
     var spreadsheet = SpreadsheetApp.openById(spreadsheetIds[i]);  // スプレッドシートを開きます。
     var copy = DriveApp.getFileById(spreadsheet.getId()).makeCopy();  // スプレッドシートのコピーを作成します。
+    DriveApp.getFileById(copy.getId()).moveTo(folder);
     
-    newSpreadsheetIds.push(copy.getId());  // 新しく作成したスプレッドシートのIDを配列に追加します。
+    //newSpreadsheetIds.push(copy.getId());  // 新しく作成したスプレッドシートのIDを配列に追加します。
   }
   
-  ss.getSheetByName("移管").getRange(1, 4, 20, 1).setValues(transpose([newSpreadsheetIds]))
+  //ss.getSheetByName("移管").getRange(1, 4, 20, 1).setValues(transpose([newSpreadsheetIds]))
   // 新しく作成したスプレッドシートのIDの配列を返します。
 }
 
@@ -22,7 +60,7 @@ function main() {
   let startTime = new Date(); // ①実行開始時点の日時
 
   var ss = SpreadsheetApp.getActiveSpreadsheet()
-  var idArray = ss.getSheetByName("移管").getRange(1, 1, 20, 4).getValues();
+  var idArray = ss.getSheetByName("移管").getRange(1, 1, 19, 5).getValues();
 
 
   let startIndex = Number(PropertiesService.getScriptProperties().getProperty('nextIndex'));
@@ -40,18 +78,20 @@ function main() {
       return;
     }
 
-    //var ssId = idArray[i][1];
-    var ssId = idArray[i][3];
+    var ssId = idArray[i][1];
+    //var ssId = idArray[i][3];
     var excelId = idArray[i][2];
 
     console.log(idArray[i])
 
-    if (excelId) {
+    if (excelId && !SpreadsheetApp.openById(ssId).getSheetByName("今月プラン")) {
       copySheetsFromExcelToSpreadsheet(ssId, excelId)
       reDoFormulas(ssId)
     }
     var ganttChart = new GanttChart(SpreadsheetApp.openById(ssId));
     ganttChart.toGantt();
+
+    ss.getSheetByName("移管").getRange(i+1, 5, 1, 1).setValue("done");
   }
   // 500周し終えたらトリガーを削除
   let triggers = ScriptApp.getScriptTriggers();
