@@ -263,7 +263,7 @@ class GanttChart {
 
 
     // 関数をコピペ
-    var monthlyFirstUekata = SpreadsheetApp.openById("10KzulodqrBj5EIGLIhr6n0hjZvMPLKI3N0mbHmrauoQ").getSheetByName("今月プラン");
+    var monthlyFirstUekata = SpreadsheetApp.openById("10KzulodqrBj5EIGLIhr6n0hjZvMPLKI3N0mbHmrauoQ").getSheetByName("月初");
     this.monthlyFirstSheet.getRange("B4:D19").setFormulas(monthlyFirstUekata.getRange("B4:D19").getFormulas());
     
     // 行や列のサイズを変更
@@ -287,6 +287,9 @@ class GanttChart {
     this.monthlyFirstSheet.setColumnWidth(59,380)
     this.monthlyFirstSheet.setColumnWidths(56,2,60)
     this.monthlyFirstSheet.setColumnWidths(60,2,60)
+
+    // 曜日の表示フォーマットを"ddd"に統一
+    this.monthlyFirstSheet.getRange("AR3:BA3").setFormulas(monthlyFirstUekata.getRange("AR3:BA3").getFormulas());
   }
 
 }
