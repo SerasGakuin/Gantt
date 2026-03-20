@@ -1,0 +1,181 @@
+<!doctype html>
+<html>
+  <head>
+    <base target="_top" />
+    <style>
+      button {
+        width: 100%;
+        padding: 4px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ヘッダ -->
+    <h2>マクロ一覧</h2>
+
+    <!-- runが押されたときにボタンが押されたことを伝えるために表示する画面。下のid="restore"のdivブロックときりかえ式。 -->
+    <div id="selection">
+      <p>
+        実行したいマクロの名前を選択して実行してください。<br />
+        右上の×ボタンを押すとメニューを閉じられます。
+      </p>
+      <hr />
+
+      <!-- ↓この??のブロックに自動で引数のない関数の実行用ボタンと説明が生成される↓ -->
+      <? // GASから渡された functionsConfigs 配列をループ
+      functionsConfigs.forEach(item => { ?>
+      <div class="macro-item">
+        <button onclick="run('<?= item.id ?>', this)">
+          <?= item.label || item.id ?>
+        </button>
+
+        <? if (item.desc) { ?>
+        <div style="font-size: 0.8em; color: #000; margin: 2px 5px 10px">
+          <?= item.desc ?>
+        </div>
+        <? } ?>
+      </div>
+      <hr />
+      <? }); ?>
+      <!-- ↑この??のブロックに自動で引数のない関数の実行用ボタンと説明が生成される↑ -->
+
+      <!-- 引数を受け取る関数の実行の仕組みを作る場合は、ContextFunctionsConfigsからhtml側の仕組みは自動生成できないので、このhtmlに手動で定義していただく必要があります。 -->
+
+      <!-- スクロールしやすいようにスペース確保するdivブロック -->
+      <div style="height: 20px"></div>
+
+      <!-- エラー報告用 手動追加したフォーム -->
+      エラーなどの報告用フォーム<br />(時刻も記録されるので複数回に分けて送信していただいてもかまいません)
+      <textarea
+        id="msg"
+        style="width: 100%; height: 150px; resize: vertical; overflow-y: scroll"
+      >
+      </textarea>
+      <!-- エラー報告送信用ボタン -->
+      <button onclick="reportError(document.getElementById('msg').value, this)">
+        報告送信
+      </button>
+
+      <!-- 見やすいようにスペース確保するdivブロック -->
+      <div style="height: 20px"></div>
+
+      「GAS参照用ガントチャート」スプレッドシートの「logSheet」シートに、エラーログや、エラー報告の内容が蓄積されています。<br />
+      <a
+        href="https://docs.google.com/spreadsheets/d/10KzulodqrBj5EIGLIhr6n0hjZvMPLKI3N0mbHmrauoQ/edit?gid=679244970#gid=679244970"
+        target="_blank"
+        rel="noopener"
+      >
+        エラーログを見る
+      </a>
+
+      <!-- スクロールしやすいようにスペース確保するdivブロック -->
+      <div style="height: 200px"></div>
+    </div>
+
+    <!-- runが押されたときにボタンが押されたことを伝えるために表示する画面。上のid="selection"のdivブロックときりかえ式。 -->
+    <div id="restore" style="display: none">
+      <p>
+        <!-- ここには押されたボタンのラベルのテキストを動的にセットします。 -->
+      </p>
+      <p>
+        が実行開始されました。<br />
+        別のマクロを実行するには、マクロの実行が完了するまでお待ちください。<br />
+        実行完了が確認されたら自動的にマクロ選択画面に戻ります。
+      </p>
+    </div>
+
+    <script>
+      /**
+       * ### このscriptタグは何なのか
+       *
+       * ここは、html内のボタンにを押したときに直接実行される関数を定義するためのタグです。
+       * scriptタグに挟まれている空間だけは、JSの方法でコメントを書くことができます。この外側ではhtmlのルールに従う必要があります。
+       *
+       *
+       * ### ここで何を実行しているのか
+       *
+       * ここscriptタグ内の関数、の中で呼ばれているのは個別の生徒のスピードプランナーの関数です。
+       * その個別の生徒のスピードプランナーの関数の中で、Gantt.abstractFucntion(idObj)（Ganttライブラリ、このライブラリの関数）が呼ばれています。
+       * 個別の生徒のスピードプランナーからでは直接ライブラリの関数を呼べない仕様のために、現状の仕組みになっています。
+       *
+       *
+       * ### 画面の切り替え
+       *
+       * このhtmlのbodyには、大きな区切りでidが"selection"のdivブロックと、"restore"のdivブロックがあります。
+       * 関数ボタンが押されたら、selectionのほうを非表示にして、restoreの方を即座に表示する切り替えをおこないます。
+       * それによって、無駄にボタンを二回連続で押したりすることをふせぎつつ、実開始されたことをユーザーに明示しています。
+       *
+       * restore画面では実行中の機能の「名前」が表示される。contextを要求しない関数については、ボタンはhtmlに自動で追加されます。
+       * runで実行した場合、つまりこのcontextを要求しない関数に対して自動追加されたボタンから実行した場合は、機能の名前は自動でボタンのラベル（表示名）と同じになります。
+       *
+       * しかし、contextを受け取る関数については手動でボタンを追加し、対応する関数をscriptタグに追加する必要があります。
+       * （FunctionRunnerServiceのほうは自動でセットアップされます。）
+       * そのとき機能の名前をどのように表示させるようにshowRunningViewに渡すかは自由に決めてもらって構いません。
+       */
+
+      /**
+       * GASで引数なし(context必要なし)で定義されている関数を実行する関数。
+       * 引数のある関数の実行のために手動でボタンを追加した場合は、このrun関数は使用しないでください。
+       * @param {string} id - 関数識別用id
+       * @param {Object} button - 実行中表示のためのボタンの表示名を取得するために受け取るインスタンス。
+       */
+      function run(id, button) {
+        const label = button.textContent;
+        showRunningView(`「${label}」`);
+
+        //NOTE: このオブジェクトをつめて実行開始するところを共通関数にしようとするとなぜかバグるので注意。
+        const idObj = { id: id, context: {} };
+        google.script.run.abstractFunction(idObj);
+      }
+
+      /**
+       * エラー報告用の特殊な関数
+       * @param {string} message - エラー報告フォームに入力された内容。
+       * @param {Object} button - 実行中表示のためのボタンの表示名を取得するために受け取るインスタンス。
+       */
+      function reportError(message, button) {
+        if (!message.trim()) return; // 空送信防止
+        showRunningView(`「エラー報告」`);
+
+        //NOTE: このオブジェクトをつめて実行開始するところを共通関数にしようとするとなぜかバグるので注意。
+        const idObj = { id: "reportError", context: { message } };
+        google.script.run.abstractFunction(idObj);
+      }
+
+      //====================== 以下は表示画面切り替えユーティリティです。 ==============================
+
+      /**
+       * マクロ実行中画面を表示する関数。
+       * @param {string} runningFunctionName - 今実行した関数の表示名。ボタンのラベルなど。
+       */
+      function showRunningView(runningFunctionName) {
+        const selectionPanel = document.getElementById("selection");
+        selectionPanel.style.display = "none"; //選択画面非表示
+        const restorePanel = document.getElementById("restore");
+        restorePanel.style.display = ""; //選択再開画面表示
+
+        document.querySelector("#restore p").textContent =
+          String(runningFunctionName);
+      }
+
+      /**
+       * @deprecated
+       * マクロ選択画面を表示する関数。以下の事情により使っていないが、一応残している。
+       *
+       * @note
+       * ここでonSuccessHandlerなどで画面を切り替えるようにしようとしたが、どうやってもうまくいかないのでGAS側のFunctionRunnerServiceでリセットするようにしている。
+       * もしここを改良したい開発者がいれば、十分に注意してください。
+       * おそらく個別のスピードプランナー側で、Gantt.abstractFuntionの結果をreturnせずにただ実行するようにしてしまったために、結果についての情報を返却できず、対応できていないような気がします。
+       * 仮にそうだとすると各生徒の呼び出し元をすべて更新しない限り、onSuccessHandler化は無理です。
+       * 現時点でもGAS側からのFunctionRunnersServiceによる強引なメニュー再生成によって意図通りに動作しているので無理に修正する必要はないかもしれません。
+       */
+      function showSelectionMenu() {
+        const selectionPanel = document.getElementById("selection");
+        selectionPanel.style.display = ""; //選択画面表示
+        const restorePanel = document.getElementById("restore");
+        restorePanel.style.display = "none"; //選択再開画面非表示
+      }
+    </script>
+  </body>
+</html>

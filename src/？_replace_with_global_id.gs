@@ -1,4 +1,10 @@
+//このファイルの用途調査中の関数は、recordFunctionUsage()から使用報告が2027/06/01ぐらいまでなければ、コメントアウトされ、アーカイブされます。
+/**
+ * @deprecated 用途調査中の関数。
+ */
 function replaceWithGlobalIds() {
+
+  recordFunctionUsage();//この関数が使用されたらそれを検知して記録 2027/06/01ぐらいまで使用が確認されなければ削除予定
 
   // データを取得
   const sheet = SpreadsheetApp.getActive().getSheetByName("ガントチャート");
@@ -14,11 +20,11 @@ function replaceWithGlobalIds() {
   const alphanumericRegex = /^[a-zA-Z0-9]+$/;
 
   // ２列目にグローバル参考書IDがある場合、１列目に移動する
-  var transformedData = data.map(function(row){
+  var transformedData = data.map(function (row) {
     // もしrow[1]が空ではない、かつ英数字のみで構成されているなら、
-    if (row[1] != "" & alphanumericRegex.test(row[1])){
+    if (row[1] != "" & alphanumericRegex.test(row[1])) {
       return [row[1], ""];
-    } 
+    }
     else {
       return [row[0], row[1]];
     }
