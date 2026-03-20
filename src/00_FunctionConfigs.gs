@@ -1,4 +1,4 @@
-// 00_FunctionsConfigs.gs
+// 00_FunctionConfigs.gs
 /*
   サイドバーからの関数の実行をはじめ、functionIdを使ってこのライブラリのグローバル関数を実行するためのインターフェースの設定ファイルです。
   GAS側のfunctionIdの自動設定や、引数がない関数についてはhtml側の呼び出し用functionIdとボタンの自動生成をするなどに参照されています。
@@ -8,15 +8,15 @@
   
   このファイルで扱う設定:
 
-  FunctionsConfigs: 引数なし関数の設定配列
-  ContextFunctionsConfigs: contextを引数として受け取る関数の配列
+  FunctionConfigs: 引数なし関数の設定配列
+  ContextFunctionConfigs: contextを引数として受け取る関数の配列
 
   両者をまたいで、id, func, labelの重複は許されません。データの整合性は、実行時にこのファイルの末尾の仕組みによって自動で検証されます。
   このとき設定オブジェクトを凍結しているので注意してください。
  */
-//========================================== FunctionsConfigs ==========================================
+//========================================== FunctionConfigs ==========================================
 /**
- * FunctionsConfigs: 引数なし関数の設定配列
+ * FunctionConfigs: 引数なし関数の設定配列
  * 
  * 格納順が、サイドバーメニューでの表示順になります。GAS、html双方でfunctionIdと実行用ボタンと説明がつじつまを合わせながら自動で生成されます。
  * contextを無視する（受け取らない）関数については、こちらに登録するだけで充分です。こちらのほうが多いと思います。
@@ -29,10 +29,7 @@
  * @property {string} [desc] - 任意。詳細説明。
  */
 /** @type {FunctionConfig[]} */
-const FunctionsConfigs = [
-  {
-    id: 'generateHearingEntries', func: generateHearingEntries, label: "ヒアリング項目作成",
-  },
+const FunctionConfigs = [
   {
     id: 'updateMonthlyRecord', func: updateMonthlyRecord, label: "月間実績に計画を表示",
     desc: "ガントチャート入力に従って、「月間実績」の内容を更新します。年月は「月間実績」シートのC1、C2セルを参照します。"
@@ -51,7 +48,7 @@ const FunctionsConfigs = [
     desc: "「ガントチャート」シートを使用する生徒の月末月初処理です。"
   },
   {
-    id: 'geshoWithoutGantt', func: geshoWithoutGantt, label: "forexcel",
+    id: 'geshoWithoutGantt', func: geshoWithoutGantt, label: "forexcel",//NOTE: 昔はforexcelという名前だった名残り
     desc: "「ガントチャート」シートを使用しない生徒の月末月初処理です。"
   }
 
@@ -59,9 +56,9 @@ const FunctionsConfigs = [
 ];
 
 
-//================================================ ContextFunctionsConfigs =================================================
+//================================================ ContextFunctionConfigs =================================================
 /**
- * ContextFunctionsConfigs: contextを引数として受け取る関数の配列
+ * ContextFunctionConfigs: contextを引数として受け取る関数の配列
  * 
  * 予期せぬ動作の回避のため、オブジェクトやクラスの中の変数は避けて、グローバル関数を格納してください。
  * 呼び出し用の関数がない場合は、00_contextFunctions.gsにcontextを受け取って本体の関数にわたす、関数を定義してください。
@@ -79,16 +76,16 @@ const FunctionsConfigs = [
  * @property {string} [label] - 任意。表示名。(もしも未設定の場合は、idと同じになります。)
  */
 /** @type {ContextFunctionConfig[]} */
-const ContextFunctionsConfigs = [
+const ContextFunctionConfigs = [
   { id: 'reportError', func: reportError, label: 'エラー報告機能' }
 ];
 
 
 
 
-//==================================================================================================================================
-//============================ 自動セットアップ・整合性チェック機構(関数追加するだけならいじる必要なし) ========================================
-//==================================================================================================================================
+//==================================================================================================
+//============= 自動セットアップ・整合性チェック機構(関数追加するだけならいじる必要なし) =======================
+//==================================================================================================
 
 /**
  * このファイルのグローバルに定義されている二種類の関数設定オブジェクト配列の「整合性チェック」と、補完を主とした「初期化」をすることを責務とするクラス。
@@ -106,14 +103,14 @@ const ContextFunctionsConfigs = [
  * 
  * ※2 バリデーションやセットアップにも処理の時間的コストが必要ですが、計測の結果、登録されている関数の数が累計10個程度の場合、1ms程度で終了するようです。
  */
-class FunctionsConfigsInitializer {
+class FunctionConfigsInitializer {
   /**
    * バリデーションとセットアップをする関数。外からはこの関数を実行すればいい。
    * もし問題があればエラーを出す。
    */
   static initialize() {
-    FunctionsConfigsInitializer._validate();   //バリデーション
-    FunctionsConfigsInitializer._setup();      //セットアップ
+    FunctionConfigsInitializer._validate();   //バリデーション
+    FunctionConfigsInitializer._setup();      //セットアップ
   }
 
   /**
@@ -121,13 +118,13 @@ class FunctionsConfigsInitializer {
    * 1. id, funcの存在と、型チェック
    * 2. (登録されている場合は)labelの型チェック
    * 3. id, func, labelの重複チェック(labelは存在しない場合は対象外)
-   * 4. FunctionsConfigs と ContextFunctionsConfigsに登録されているfuncの引数が、前者は0,後者は1になっていることを確認(contextの必要性の有無)
+   * 4. FunctionConfigs と ContextFunctionConfigsに登録されているfuncの引数が、前者は0,後者は1になっていることを確認(contextの必要性の有無)
    * @private
    */
   static _validate() {
     const errors = [];//エラーをためて最後に排出するための配列
 
-    const allFuncsConfigs = [...FunctionsConfigs, ...ContextFunctionsConfigs];//設定されたすべての関数の配列
+    const allFuncsConfigs = [...FunctionConfigs, ...ContextFunctionConfigs];//設定されたすべての関数の配列
 
     const seenIdsSet = new Set();//重複検知目的のSet群
     const seenFuncsSet = new Set();
@@ -159,20 +156,20 @@ class FunctionsConfigsInitializer {
     })
 
     //contextを受け取らない関数は引数を持たない必要がある
-    FunctionsConfigs.forEach(config => {
+    FunctionConfigs.forEach(config => {
       if (!config || typeof config !== 'object') return;
       const func = config.func;
       if (!!func && typeof func === 'function') {
-        if (func.length !== 0) errors.push(`引数が0でない関数がFunctionsConfigsにみつかりました！\n該当func:${config.func}\n該当コンフィグ(function型のプロパティは表示されない):\n${JSON.stringify(config)}`);
+        if (func.length !== 0) errors.push(`引数が0でない関数がFunctionConfigsにみつかりました！\n該当func:${config.func}\n該当コンフィグ(function型のプロパティは表示されない):\n${JSON.stringify(config)}`);
       }
     })
 
     //contextを受け取る関数は引数を一つだけ持つ必要がある
-    ContextFunctionsConfigs.forEach(config => {
+    ContextFunctionConfigs.forEach(config => {
       if (!config || typeof config !== 'object') return;
       const func = config.func;
       if (!!func && typeof func === 'function') {
-        if (func.length !== 1) errors.push(`引数が1でない関数がContextFunctionsConfigsにみつかりました！(contextオブジェクトを一つだけ受け取るようにして、contextから必要なデータを取り出す仕組みにしてください)\n該当func:${config.func}\n該当コンフィグ(function型のプロパティは表示されない):\n${JSON.stringify(config)}`);
+        if (func.length !== 1) errors.push(`引数が1でない関数がContextFunctionConfigsにみつかりました！(contextオブジェクトを一つだけ受け取るようにして、contextから必要なデータを取り出す仕組みにしてください)\n該当func:${config.func}\n該当コンフィグ(function型のプロパティは表示されない):\n${JSON.stringify(config)}`);
       }
     })
 
@@ -186,20 +183,20 @@ class FunctionsConfigsInitializer {
    * @private
    */
   static _setup() {
-    FunctionsConfigs.forEach(config => {
+    FunctionConfigs.forEach(config => {
       if (!config.label) config.label = config.id;//label補完
       Object.freeze(config);
     })
-    ContextFunctionsConfigs.forEach(config => {
+    ContextFunctionConfigs.forEach(config => {
       if (!config.label) config.label = config.id;//label補完
       Object.freeze(config);
     })
     //凍結
-    Object.freeze(FunctionsConfigs);
-    Object.freeze(ContextFunctionsConfigs);
+    Object.freeze(FunctionConfigs);
+    Object.freeze(ContextFunctionConfigs);
   }
 }
-(function () { FunctionsConfigsInitializer.initialize() })();// IIFE
+(function () { FunctionConfigsInitializer.initialize() })();// IIFE
 
 
 

@@ -23,8 +23,8 @@
       <hr />
 
       <!-- ↓この??のブロックに自動で引数のない関数の実行用ボタンと説明が生成される↓ -->
-      <? // GASから渡された functionsConfigs 配列をループ
-      functionsConfigs.forEach(item => { ?>
+      <? // GASから渡された FunctionConfigs 配列をループ
+      FunctionConfigs.forEach(item => { ?>
       <div class="macro-item">
         <button onclick="run('<?= item.id ?>', this)">
           <?= item.label || item.id ?>
@@ -40,7 +40,7 @@
       <? }); ?>
       <!-- ↑この??のブロックに自動で引数のない関数の実行用ボタンと説明が生成される↑ -->
 
-      <!-- 引数を受け取る関数の実行の仕組みを作る場合は、ContextFunctionsConfigsからhtml側の仕組みは自動生成できないので、このhtmlに手動で定義していただく必要があります。 -->
+      <!-- 引数を受け取る関数の実行の仕組みを作る場合は、ContextFunctionConfigsからhtml側の仕組みは自動生成できないので、このhtmlに手動で定義していただく必要があります。 -->
 
       <!-- スクロールしやすいようにスペース確保するdivブロック -->
       <div style="height: 20px"></div>
@@ -169,6 +169,8 @@
        * おそらく個別のスピードプランナー側で、Gantt.abstractFuntionの結果をreturnせずにただ実行するようにしてしまったために、結果についての情報を返却できず、対応できていないような気がします。
        * 仮にそうだとすると各生徒の呼び出し元をすべて更新しない限り、onSuccessHandler化は無理です。
        * 現時点でもGAS側からのFunctionRunnersServiceによる強引なメニュー再生成によって意図通りに動作しているので無理に修正する必要はないかもしれません。
+       *
+       * なお、この問題は「年間計画レビュー」ドキュメントの共有ライブラリの方では解決しており、実際に関数の戻り値を各呼び出し元で返すようにしたので、これが理由と思われる。
        */
       function showSelectionMenu() {
         const selectionPanel = document.getElementById("selection");

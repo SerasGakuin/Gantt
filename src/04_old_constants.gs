@@ -1,5 +1,5 @@
 // Constants
-const API_URL = 'https://api.openai.com/v1/chat/completions';
+const API_URL = "https://api.openai.com/v1/chat/completions";
 const SYSTEM_PROMPT = `
 あなたは優秀な大学受験予備校の講師です。コーチング手法に基づく適切な質問文を作ってもらいます。毎回、オープンクエスチョン形式の質問を7つ作成してもらいます。質問の字数は、最小で20文字、最大で40文字までです。これから付加される生徒の情報を考慮して、質問を出力してください。質問は、7つで生徒の幅広い情報を得ることができるようにしてください。
 

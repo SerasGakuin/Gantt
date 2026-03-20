@@ -2,23 +2,23 @@
  * 月末月初時に行う軽微な更新の内容を定義するクラス。
  * Geshoの最後でこのクラスのstartメソッドが呼ばれる。
  * 不可逆な更新を一回実行するために使用する想定です。毎回実行するようにしたい処理はGeshoのほうに定義してください。
- * 
+ *
  * 以下のように期限ごとにクラス化して、UpdateOnGesho本体で順に実行するようにするとわかりやすいと思います:
- * 
+ *
  * class UpdateOnGesho{
  *   static start(spIOManager){
  *     updateOnGesho_2026_04.start(spIOManager)
  *   }
  * }
- * 
+ *
  * class updateOnGesho_2026_04 {
  *  static start(spIOManager){
  *    if(new Date().getTime() > new Date(2026,4-1,2)) return;//2026_04以降は不要であることをコードでも示す(Date型の仕様的に月は-1する)
  *    ...(処理)
  *  }
  * }
- * 
-*/
+ *
+ */
 
 class UpdateOnGesho {
   /**
@@ -28,54 +28,55 @@ class UpdateOnGesho {
   static start(spIOManager) {
     if (!spIOManager) return;
     updateOnGesho_2026_04.start(spIOManager);
-
   }
-
 }
 
-
 class updateOnGesho_2026_04 {
-
   static start(spIOManager) {
+    if (new Date().getTime() > new Date(2026, 4 - 1, 2)) return; //2026_04以降は不要
 
-    if (new Date().getTime() > new Date(2026, 4 - 1, 2)) return;//2026_04以降は不要
-
-    this._fixMonthBlocksSpacing(spIOManager);//月間管理シートのデータの正規化
+    this._fixMonthBlocksSpacing(spIOManager); //月間管理シートのデータの正規化
 
     {
       const thisMonthPlanSheet = spIOManager.thisMonthPlanSheet;
-      thisMonthPlanSheet.getRange('J2').setValue('①');
-      thisMonthPlanSheet.getRange('J5').setValue('②');
-      thisMonthPlanSheet.getRange('J8').setValue('③');
-      thisMonthPlanSheet.getRange('J11').setValue('④');
-      thisMonthPlanSheet.getRange('J14').setValue('⑤');
+      thisMonthPlanSheet.getRange("J2").setValue("①");
+      thisMonthPlanSheet.getRange("J5").setValue("②");
+      thisMonthPlanSheet.getRange("J8").setValue("③");
+      thisMonthPlanSheet.getRange("J11").setValue("④");
+      thisMonthPlanSheet.getRange("J14").setValue("⑤");
 
-      thisMonthPlanSheet.getRange('D4:H30').setFontSize(12).setHorizontalAlignment('center')
+      thisMonthPlanSheet
+        .getRange("D4:H30")
+        .setFontSize(12)
+        .setHorizontalAlignment("center");
 
-      thisMonthPlanSheet.getDataRange().setFontFamily('Arial');
-      thisMonthPlanSheet.getRange('B4:C30').setWrap(true);
-      thisMonthPlanSheet.getRange('I4:I30').setWrap(true);
-      thisMonthPlanSheet.getRange('R4:T30').setWrap(true);
+      thisMonthPlanSheet.getDataRange().setFontFamily("Arial");
+      thisMonthPlanSheet.getRange("B4:C30").setWrap(true);
+      thisMonthPlanSheet.getRange("I4:I30").setWrap(true);
+      thisMonthPlanSheet.getRange("R4:T30").setWrap(true);
 
-      thisMonthPlanSheet.getRange('R2:R3').setFontSize(9);
+      thisMonthPlanSheet.getRange("R2:R3").setFontSize(9);
     }
 
     {
       const weeklySheet = spIOManager.weeklySheet;
-      weeklySheet.getRange('AQ1').clearContent();
-      weeklySheet.getRange('AP1').setValue("◆学習進捗（週次・実績）");
+      weeklySheet.getRange("AQ1").clearContent();
+      weeklySheet.getRange("AP1").setValue("◆学習進捗（週次・実績）");
       weeklySheet.getRange("B2:D30").setWrap(true);
-      weeklySheet.getDataRange().setFontFamily('Arial');
+      weeklySheet.getDataRange().setFontFamily("Arial");
     }
 
     {
       const monthlyFirst = spIOManager.monthlyFirstSheet;
       monthlyFirst.getRange("AE1:AH1").clear();
-      monthlyFirst.getRange('D4:H30').setFontSize(12).setHorizontalAlignment('center');
+      monthlyFirst
+        .getRange("D4:H30")
+        .setFontSize(12)
+        .setHorizontalAlignment("center");
 
-      monthlyFirst.getDataRange().setFontFamily('Arial');
-      monthlyFirst.getRange('B4:C30').setWrap(true);
-      monthlyFirst.getRange('R4:T30').setWrap(true);
+      monthlyFirst.getDataRange().setFontFamily("Arial");
+      monthlyFirst.getRange("B4:C30").setWrap(true);
+      monthlyFirst.getRange("R4:T30").setWrap(true);
 
       const formula = `=LET(
     parts, SPLIT($A$2, ","),
@@ -121,37 +122,47 @@ class updateOnGesho_2026_04 {
 
       monthlyFirst.getRange("I2").setFormula(formula1);
 
-      monthlyFirst.getRange("I4:I30").clearContent();//最新の実績の数式の展開に邪魔
-
+      monthlyFirst.getRange("I4:I30").clearContent(); //最新の実績の数式の展開に邪魔
     }
 
     const monthlySheet = spIOManager.monthlySheet;
     {
       // 見出しをセット
-      monthlySheet.getRange('N1:R1').setValues([
-        ['実績(第1週)', '実績(第2週)', '実績(第3週)', '実績(第4週)', '実績(第5週)']
-      ]);
-      monthlySheet.getRange('D1').setValue('印刷要否');
-      monthlySheet.getRange('I1').setValue('教材・学習内容\n※メモ入力時は空欄');
-      monthlySheet.getRange('J1').setValue('月間目標・計画のヒント・メモのタイトル');
-      monthlySheet.getRange('G1').setValue('ID');
-      monthlySheet.getRange('K1').setValue('単位\n処理量');
+      monthlySheet
+        .getRange("N1:R1")
+        .setValues([
+          [
+            "実績(第1週)",
+            "実績(第2週)",
+            "実績(第3週)",
+            "実績(第4週)",
+            "実績(第5週)",
+          ],
+        ]);
+      monthlySheet.getRange("D1").setValue("印刷要否");
+      monthlySheet.getRange("I1").setValue("教材・学習内容\n※メモ入力時は空欄");
+      monthlySheet
+        .getRange("J1")
+        .setValue("月間目標・計画のヒント・メモのタイトル");
+      monthlySheet.getRange("G1").setValue("ID");
+      monthlySheet.getRange("K1").setValue("単位\n処理量");
       // --- ヘッダの中央揃え（縦横）、太字、フォント統一 ---
-      monthlySheet.getRange('A1:U1')
-        .setHorizontalAlignment('center')
-        .setVerticalAlignment('middle')
-        .setFontWeight('bold');
+      monthlySheet
+        .getRange("A1:U1")
+        .setHorizontalAlignment("center")
+        .setVerticalAlignment("middle")
+        .setFontWeight("bold");
 
-      monthlySheet.getDataRange().setFontFamily('Arial').setWrap(true);
+      monthlySheet.getDataRange().setFontFamily("Arial").setWrap(true);
 
       //列幅調整
       monthlySheet.setColumnWidth(1, 70);
       monthlySheet.setColumnWidth(2, 32);
-      monthlySheet.setColumnWidths(5, 2, 25);    // EF列は使ってないので細目に（一応隠すまではしない）
-      monthlySheet.setColumnWidth(4, 50);    // Dも幅を最適化
-      monthlySheet.setColumnWidth(8, 45);    // H
-      monthlySheet.setColumnWidths(11, 3, 64);    // K〜Mに同じ幅を設定
-      monthlySheet.setColumnWidths(14, 5, 160);    // N〜R（15〜18列目）に同じ幅を設定
+      monthlySheet.setColumnWidths(5, 2, 25); // EF列は使ってないので細目に（一応隠すまではしない）
+      monthlySheet.setColumnWidth(4, 50); // Dも幅を最適化
+      monthlySheet.setColumnWidth(8, 45); // H
+      monthlySheet.setColumnWidths(11, 3, 64); // K〜Mに同じ幅を設定
+      monthlySheet.setColumnWidths(14, 5, 160); // N〜R（15〜18列目）に同じ幅を設定
 
       //フォントサイズ調整
       monthlySheet.getDataRange().setFontSize(8);
@@ -162,15 +173,17 @@ class updateOnGesho_2026_04 {
       monthlySheet.getRange("N:R").setWrap(true);
     }
 
-
-    {// C列の月修復
+    {
+      // C列の月修復
       // 01が勝手に1に直されるのを防ぐために文字列書式に変更（全行）
       monthlySheet.getRange("A:J").setNumberFormat("@");
       //データを正規化
       const lastRow = monthlySheet.getLastRow();
-      const monthlySheetMonthCol = monthlySheet.getRange(1, 3, lastRow, 1).getDisplayValues();
+      const monthlySheetMonthCol = monthlySheet
+        .getRange(1, 3, lastRow, 1)
+        .getDisplayValues();
       // C列の値を書き換えるための配列を作成
-      const updated = monthlySheetMonthCol.map(row => {
+      const updated = monthlySheetMonthCol.map((row) => {
         let value = row[0];
         // 空白はそのまま
         if (value === "" || value == null) return row;
@@ -191,29 +204,32 @@ class updateOnGesho_2026_04 {
       monthlySheet.getRange(1, 3, updated.length, 1).setValues(updated);
     }
 
-    {// G列の数式は消す
+    {
+      // G列の数式は消す
       const lastRow = monthlySheet.getLastRow();
       const formulas = monthlySheet.getRange(1, 7, lastRow, 1).getFormulas();
       const values = monthlySheet.getRange(1, 7, lastRow, 1).getValues();
       const newValues = formulas.map((row, i) => {
         // 数式がある場合だけ空にし、値は残す
-        return [row[0] && row[0].startsWith('=') ? "" : values[i][0]];
+        return [row[0] && row[0].startsWith("=") ? "" : values[i][0]];
       });
       monthlySheet.getRange(1, 7, lastRow, 1).setValues(newValues);
     }
 
-    {//下のほうの謎の数式のはいった二行を削除
+    {
+      //下のほうの謎の数式のはいった二行を削除
       SpreadsheetApp.flush();
       const lastRow = monthlySheet.getLastRow();
       const yearCol = monthlySheet.getRange(1, 2, lastRow, 1).getFormulas();
-      for (let i = yearCol.length - 1; i >= 0; i--) {//下から上へ走査
-        const formula = yearCol[i][0];//通常はここに数式はない。
-        if (formula && formula.includes('macro')) {//数式がある時点で本来はアウトだが、慎重にポンポイントで削除
+      for (let i = yearCol.length - 1; i >= 0; i--) {
+        //下から上へ走査
+        const formula = yearCol[i][0]; //通常はここに数式はない。
+        if (formula && formula.includes("macro")) {
+          //数式がある時点で本来はアウトだが、慎重にポンポイントで削除
           monthlySheet.deleteRow(i + 1);
         }
       }
     }
-
   }
 
   //この関数はデータの不可逆な正規化をしているだけなのでいずれ不要になる。
@@ -229,9 +245,11 @@ class updateOnGesho_2026_04 {
     // true = データあり（空でない）
     // false = 空行
     const isData = ym.map(([y, m]) => {
-      const yEmpty = (typeof y === "string" && y.trim() === "") || y === "" || y == null;
-      const mEmpty = (typeof m === "string" && m.trim() === "") || m === "" || m == null;
-      return !(yEmpty && mEmpty);  // 両方空なら空行とみなす
+      const yEmpty =
+        (typeof y === "string" && y.trim() === "") || y === "" || y == null;
+      const mEmpty =
+        (typeof m === "string" && m.trim() === "") || m === "" || m == null;
+      return !(yEmpty && mEmpty); // 両方空なら空行とみなす
     });
 
     // データブロック（連続した true の区間）を抽出

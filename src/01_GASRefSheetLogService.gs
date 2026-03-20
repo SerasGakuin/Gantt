@@ -2,26 +2,26 @@
 /**
  * @class
  * # GASRefferenceSheetLogService
- * 
+ *
  * GAS参照用ブックのログ記録用シートに見逃したくないログを記録するクラス。
  * appendRowを使用するため、何度も通知を送信する場合には重いです。特に重要なログを永続させるために使用してください。
  * メッセージの内容さえ送れば、時刻は自動で記録される。
- * 
+ *
  * ### 提供メソッド一覧
- * 
+ *
  * - log(message) : 一般ログ。
  * - info(message) : 特に重要な実行情報。
  * - user(message) : ユーザーが送信したエラー報告など、システムによる自動入力ではないもの。
  * - warn(message) : 警告文。
  * - error(message) : エラーログ。
- * 
+ *
  */
 class GASRefferenceSheetLogService {
   /** @private */
   static get CONFIG() {
     return {
-      BOOK_ID: '10KzulodqrBj5EIGLIhr6n0hjZvMPLKI3N0mbHmrauoQ',
-      SHEET_NAME: 'logSheet'
+      BOOK_ID: "10KzulodqrBj5EIGLIhr6n0hjZvMPLKI3N0mbHmrauoQ",
+      SHEET_NAME: "logSheet",
     };
   }
 
@@ -32,9 +32,8 @@ class GASRefferenceSheetLogService {
    * @deprecated
    */
   static record(message) {
-    GASRefferenceSheetLogService._recordWithLevel(message, 'LOG');
+    GASRefferenceSheetLogService._recordWithLevel(message, "LOG");
   }
-
 
   /**
    * GAS参照用ブックのエラー記録用シートに任意のログを記録する。
@@ -42,7 +41,9 @@ class GASRefferenceSheetLogService {
    * @param {string} message - 記録したいログの内容。
    * @public
    */
-  static log(message){ GASRefferenceSheetLogService._recordWithLevel(message, 'LOG')}
+  static log(message) {
+    GASRefferenceSheetLogService._recordWithLevel(message, "LOG");
+  }
 
   /**
    * GAS参照用ブックのエラー記録用シートに任意のログを記録する。
@@ -50,7 +51,9 @@ class GASRefferenceSheetLogService {
    * @param {string} message - 記録したいログの内容。
    * @public
    */
-  static user(message){ GASRefferenceSheetLogService._recordWithLevel(message, 'USER') }
+  static user(message) {
+    GASRefferenceSheetLogService._recordWithLevel(message, "USER");
+  }
 
   /**
    * GAS参照用ブックのエラー記録用シートに任意のログを記録する。
@@ -58,15 +61,19 @@ class GASRefferenceSheetLogService {
    * @param {string} message - 記録したいログの内容。
    * @public
    */
-  static info(message){ GASRefferenceSheetLogService._recordWithLevel(message, 'INFO') }
-  
+  static info(message) {
+    GASRefferenceSheetLogService._recordWithLevel(message, "INFO");
+  }
+
   /**
    * GAS参照用ブックのエラー記録用シートに任意のログを記録する。
    * ログレベル:'WARN' - 警告文
    * @param {string} message - 記録したいログの内容。
    * @public
    */
-  static warn(message){ GASRefferenceSheetLogService._recordWithLevel(message, 'WARN') }
+  static warn(message) {
+    GASRefferenceSheetLogService._recordWithLevel(message, "WARN");
+  }
 
   /**
    * GAS参照用ブックのエラー記録用シートに任意のログを記録する。
@@ -74,7 +81,9 @@ class GASRefferenceSheetLogService {
    * @param {string} message - 記録したいログの内容。
    * @public
    */
-  static error(message){ GASRefferenceSheetLogService._recordWithLevel(message, 'ERROR') }
+  static error(message) {
+    GASRefferenceSheetLogService._recordWithLevel(message, "ERROR");
+  }
 
   /**
    * GAS参照用ブックのエラー記録用シートに任意のログを記録する。
@@ -84,7 +93,8 @@ class GASRefferenceSheetLogService {
    */
   static _recordWithLevel(message, level) {
     try {
-      const isTarget = typeof message === 'string' && message.trim().length !== 0;
+      const isTarget =
+        typeof message === "string" && message.trim().length !== 0;
       if (!isTarget) return; //logとして残せるものでないならreturn
 
       const logSheet = this.logSheet;
@@ -98,15 +108,18 @@ class GASRefferenceSheetLogService {
       // 追記した行の高さ調整
       const lastRow = logSheet.getLastRow();
       if (lastRow > 1) logSheet.setRowHeight(lastRow, 48);
-      
-    } catch (e) {//ただのログ保存用ユーティリティのためにthrowして動作を止めないようにconsoleに記録して終わりにする
-      console.error(`GASRefferenceSheetLogService:\nログの記録に失敗しました！\n送信しようとしていた内容:\n${message}`, e);
+    } catch (e) {
+      //ただのログ保存用ユーティリティのためにthrowして動作を止めないようにconsoleに記録して終わりにする
+      console.error(
+        `GASRefferenceSheetLogService:\nログの記録に失敗しました！\n送信しようとしていた内容:\n${message}`,
+        e,
+      );
     }
   }
 
   /**
    * logを出力するためのシートを取得するメソッド。
-   * 
+   *
    * @returns {SpreadSheetApp.SpreadSheet.Sheet} - logSheet
    * @private
    */
@@ -116,10 +129,9 @@ class GASRefferenceSheetLogService {
         const gasRefBook = SpreadsheetApp.openById(this.CONFIG.BOOK_ID);
         this._logSheet = gasRefBook.getSheetByName(this.CONFIG.SHEET_NAME);
       } catch (e) {
-        console.error('GASRefferenceSheetLogService: シート取得エラー', e);
+        console.error("GASRefferenceSheetLogService: シート取得エラー", e);
       }
     }
     return this._logSheet;
   }
-
 }
