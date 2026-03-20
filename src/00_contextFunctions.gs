@@ -19,5 +19,5 @@
 function reportError(context) {
   const message = context.message;
   if (!message) return;
-  GASRefferenceSheetLogService.user(message)
+  GASRefferenceSheetLogService.user(message);
 }

@@ -1,7 +1,7 @@
 //SYSTEM_PROMPTとAPI_URLは hearingConstants.gsに
 
 //呼び出し用ラッパー
-function generateHearingEntries() {
+function generateHearingEntries_old() {
   chatGpt4();
 }
 
@@ -17,34 +17,37 @@ function chatGpt4() {
  * @param {string} model - 使用するGPTモデル
  */
 function chatGptRequest(model) {
-  const apiKey = ScriptProperties.getProperty('APIKEY');
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ヒアリング');
+  const apiKey = ScriptProperties.getProperty("APIKEY");
+  const sheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("ヒアリング");
 
   clearPreviousResponses(sheet);
   const messages = prepareMessages(sheet);
 
   const requestBody = {
-    'model': model,
-    'temperature': 1,
-    'max_completion_tokens': 2048,
-    'messages': messages
+    model: model,
+    temperature: 1,
+    max_completion_tokens: 2048,
+    messages: messages,
   };
 
   const options = {
     method: "POST",
     muteHttpExceptions: true,
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey,
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + apiKey,
     },
     payload: JSON.stringify(requestBody),
   };
 
   try {
-    const response = JSON.parse(UrlFetchApp.fetch(API_URL, options).getContentText());
+    const response = JSON.parse(
+      UrlFetchApp.fetch(API_URL, options).getContentText(),
+    );
     processResponse(response, sheet);
   } catch (e) {
-    console.error('Error in chatGptRequest:', e);
+    console.error("Error in chatGptRequest:", e);
     sheet.getRange("B3").setValue("Error: " + e.message);
   }
 }
@@ -64,14 +67,14 @@ function clearPreviousResponses(sheet) {
  * @returns {Array} 準備されたメッセージの配列
  */
 function prepareMessages(sheet) {
-  let messages = [{ 'role': 'system', 'content': SYSTEM_PROMPT }];
+  let messages = [{ role: "system", content: SYSTEM_PROMPT }];
 
   const previousWeek = sheet.getRange("A3:A16").getValues();
   const previousPrompt = preparePreviousWeekPrompt(previousWeek);
-  messages.push({ 'role': 'user', 'content': previousPrompt });
+  messages.push({ role: "user", content: previousPrompt });
 
   const currentPrompt = sheet.getRange("B1").getValue();
-  messages.push({ 'role': 'user', 'content': currentPrompt + "\n\n## 出力" });
+  messages.push({ role: "user", content: currentPrompt + "\n\n## 出力" });
 
   return messages;
 }
@@ -102,30 +105,9 @@ function processResponse(response, sheet) {
     const sentences = extractSentences(response.choices[0].message.content);
     responseCell.setValues(sentences);
   } else {
-    console.error('Unexpected API response:', response);
+    console.error("Unexpected API response:", response);
     responseCell.setValue(JSON.stringify(response));
   }
-}
-
-/**
- * 今週の課題に過去問が含まれている場合、その情報を表示する関数
- * @returns {string} 過去問・模試の情報
- */
-function displayKakomon() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet();
-  const weeklySheet = sheet.getSheetByName('週間管理');
-  const thisWeek = Number(sheet.getSheetByName('今月プラン').getRange("A1").getValue()[0]);
-
-  const weekToRange = { 1: "H4:H19", 2: "P4:P19", 3: "X4:X19", 4: "AF4:AF19", 5: "AN4:AN19" };
-  const weeklyLog = weeklySheet.getRange(weekToRange[thisWeek]).getValues().flat();
-
-  const keywords = ["大学", "過去問", "模試"];
-  const filteredStrings = weeklyLog.filter(str =>
-    keywords.some(keyword => str.includes(keyword))
-  );
-
-  const res = filteredStrings.length ? filteredStrings.join("\n") : "なし";
-  return "【今週の過去問・模試】\n\n" + res;
 }
 
 /**
@@ -135,15 +117,16 @@ function displayKakomon() {
  */
 function extractSentences(text) {
   const lines = text.split("\n");
-  const sentences = lines.map(line => line.replace(/^\d+\.\s/, ""));
-  return sentences.flatMap(sentence => [[sentence], [""]]);
+  const sentences = lines.map((line) => line.replace(/^\d+\.\s/, ""));
+  return sentences.flatMap((sentence) => [[sentence], [""]]);
 }
 
 /**
  * テスト用関数
  */
 function test() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('週間管理');
+  const sheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("週間管理");
   const range = sheet.getRange("P4:P19");
   console.log(range.getValues());
 }
