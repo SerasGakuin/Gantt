@@ -1,4 +1,10 @@
+//このファイルの用途調査中の関数は、recordFunctionUsage()から使用報告が2027/06/01ぐらいまでなければ、コメントアウトされ、アーカイブされます。
+/**
+ * @deprecated 用途調査中の関数。
+ */
 function insertIdBasedOnString() {
+  recordFunctionUsage();//この関数が使用されたらそれを検知して記録 2027/06/01ぐらいまで使用が確認されなければ削除予定
+  
   // ガントチャートシートの取得
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ガントチャート');
   var range = sheet.getDataRange();
