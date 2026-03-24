@@ -42,6 +42,7 @@ class GASRefferenceSheetLogService {
    * @public
    */
   static log(message) {
+    console.log(message);
     GASRefferenceSheetLogService._recordWithLevel(message, "LOG");
   }
 
@@ -52,6 +53,7 @@ class GASRefferenceSheetLogService {
    * @public
    */
   static user(message) {
+    console.info(message);
     GASRefferenceSheetLogService._recordWithLevel(message, "USER");
   }
 
@@ -62,6 +64,7 @@ class GASRefferenceSheetLogService {
    * @public
    */
   static info(message) {
+    console.info(message);
     GASRefferenceSheetLogService._recordWithLevel(message, "INFO");
   }
 
@@ -72,6 +75,7 @@ class GASRefferenceSheetLogService {
    * @public
    */
   static warn(message) {
+    console.warn(message);
     GASRefferenceSheetLogService._recordWithLevel(message, "WARN");
   }
 
@@ -82,6 +86,7 @@ class GASRefferenceSheetLogService {
    * @public
    */
   static error(message) {
+    console.error(message);
     GASRefferenceSheetLogService._recordWithLevel(message, "ERROR");
   }
 
@@ -101,9 +106,10 @@ class GASRefferenceSheetLogService {
       if (!logSheet) return;
 
       const timestamp = new Date();
+      const msgSafe = message.trim();
 
       // メッセージ行を追加
-      logSheet.appendRow([timestamp, level, message.trim()]);
+      logSheet.appendRow([timestamp, level, msgSafe]);
 
       // 追記した行の高さ調整
       const lastRow = logSheet.getLastRow();
