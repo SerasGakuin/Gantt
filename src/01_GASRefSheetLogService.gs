@@ -1,4 +1,11 @@
 //01_GASRefSheetLogService.gs
+function test_GASRefferenceSheetLogService() {
+  GASRefferenceSheetLogService.log("【TEST】通常ログのテストです");
+  GASRefferenceSheetLogService.info("【TEST】重要情報ログのテストです");
+  GASRefferenceSheetLogService.user("【TEST】ユーザー入力ログのテストです");
+  GASRefferenceSheetLogService.warn("【TEST】警告ログのテストです");
+  GASRefferenceSheetLogService.error("【TEST】エラーログのテストです");
+}
 /**
  * @class
  * # GASRefferenceSheetLogService
@@ -32,7 +39,8 @@ class GASRefferenceSheetLogService {
    * @deprecated
    */
   static record(message) {
-    GASRefferenceSheetLogService._recordWithLevel(message, "LOG");
+    console.warn("このログ用関数はログレベルの指定が不可能のため現在非推奨です。段階的に.logなどへの移行をお勧めします。")
+    GASRefferenceSheetLogService._recordWithLevel(message, "LOG" , console.log);
   }
 
   /**
@@ -42,8 +50,7 @@ class GASRefferenceSheetLogService {
    * @public
    */
   static log(message) {
-    console.log(message);
-    GASRefferenceSheetLogService._recordWithLevel(message, "LOG");
+    GASRefferenceSheetLogService._recordWithLevel(message, "LOG", console.log);
   }
 
   /**
@@ -53,8 +60,7 @@ class GASRefferenceSheetLogService {
    * @public
    */
   static user(message) {
-    console.info("[user input] "+message);
-    GASRefferenceSheetLogService._recordWithLevel(message, "USER");
+    GASRefferenceSheetLogService._recordWithLevel(message, "USER", console.log);
   }
 
   /**
@@ -64,8 +70,7 @@ class GASRefferenceSheetLogService {
    * @public
    */
   static info(message) {
-    console.info(message);
-    GASRefferenceSheetLogService._recordWithLevel(message, "INFO");
+    GASRefferenceSheetLogService._recordWithLevel(message, "INFO", console.info);
   }
 
   /**
@@ -75,8 +80,7 @@ class GASRefferenceSheetLogService {
    * @public
    */
   static warn(message) {
-    console.warn(message);
-    GASRefferenceSheetLogService._recordWithLevel(message, "WARN");
+    GASRefferenceSheetLogService._recordWithLevel(message, "WARN", console.warn);
   }
 
   /**
@@ -86,17 +90,17 @@ class GASRefferenceSheetLogService {
    * @public
    */
   static error(message) {
-    console.error(message);
-    GASRefferenceSheetLogService._recordWithLevel(message, "ERROR");
+    GASRefferenceSheetLogService._recordWithLevel(message, "ERROR", console.error);
   }
 
   /**
    * GAS参照用ブックのエラー記録用シートに任意のログを記録する。
    * @param {string} message - メッセージ
    * @param {string} level - メッセージのレベルを指定する
+   * @param {function} consoleLogger - メッセージをコンソールにも記録するときに利用する関数。
    * @private
    */
-  static _recordWithLevel(message, level) {
+  static _recordWithLevel(message, level, consoleLogger) {
     try {
       const isTarget =
         typeof message === "string" && message.trim().length !== 0;
@@ -114,6 +118,9 @@ class GASRefferenceSheetLogService {
       // 追記した行の高さ調整
       const lastRow = logSheet.getLastRow();
       if (lastRow > 1) logSheet.setRowHeight(lastRow, 48);
+
+      // コンソールにも送信
+      consoleLogger(msgSafe);
     } catch (e) {
       //ただのログ保存用ユーティリティのためにthrowして動作を止めないようにconsoleに記録して終わりにする
       console.error(
