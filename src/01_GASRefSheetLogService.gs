@@ -53,7 +53,7 @@ class GASRefferenceSheetLogService {
    * @public
    */
   static user(message) {
-    console.info(message);
+    console.info("[user input] "+message);
     GASRefferenceSheetLogService._recordWithLevel(message, "USER");
   }
 
