@@ -5,7 +5,7 @@
  * @returns {string} 過去問・模試の情報
  */
 function displayKakomon() {
-  recordFunctionUsage();
+  recordFunctionUsage();// 2026-03-27から設置
   const sheet = SpreadsheetApp.getActiveSpreadsheet();
   const weeklySheet = sheet.getSheetByName("週間管理");
   const thisWeek = Number(
