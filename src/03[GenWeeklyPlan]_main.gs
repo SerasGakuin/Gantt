@@ -29,6 +29,9 @@ function week5Plan() {
  * @private
  */
 function genericGenWeeklyPlanProdFunc(weekNum, spId = null) {
+  if(!Number.isSafeInteger(weekNum)|| weekNum <= 0 || weekNum >= 6){
+    throw new Error(`weekNumは1~5の整数を渡してください。渡された値：${String(weekNum)}`);
+  }
   if(spId !== null && typeof spId !== 'string'){
     throw new Error("spIdはstringで渡すか何も渡さないかのどちらかにする必要があります。渡されたもの："+String(spId));
   }
