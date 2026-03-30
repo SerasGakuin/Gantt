@@ -81,7 +81,7 @@ class GenHearingItems_ItemsGeneratorWithClaude {
         .replace(/^\s*(?:[-*•]\s*|\d+[.)]\s*|\(\d+\)\s*)/, '')
         .trim()
       )
-      .filter(v => v !== '');
+      .filter(v => v.length >= 6);// 5文字以下はさすがにエラー
   }
 
 
@@ -214,7 +214,7 @@ Template6
 
 来月の部活の予定は？
 
-## それでは、質問の生成をお願いします：
+## それでは、質問の生成をお願いします。：
 `;
   }
 }
