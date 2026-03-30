@@ -33,6 +33,11 @@ class GenHearingItems {
     try {
       // シートをクリアして生成中表示　TODO: 具体的なセッターのSpeedPlannerIOManagerへの移行
       this._clearPreviousResponses(currSpSheet);
+      // TEMP: claudeに移行したので「chatGPTからの提案」を「AIからの提案」に変更(5月の頭でやめる)
+      if(Date.now() < new Date(2026, 4, 1).getTime()){
+        const hearingSheet = this._getSheet(currSpSheet);
+        hearingSheet.getRange("B2").setValue("AIからの提案");
+      }
       // AIに項目を配列で生成してもらう
       const aiResponcesArr = itemsGenFn(contextProvider.getContext());
       if(!Array.isArray(aiResponcesArr)){
@@ -91,11 +96,3 @@ class GenHearingItems {
 
 
 }
-
-
-
-
-
-
-
-
