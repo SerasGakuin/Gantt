@@ -142,6 +142,9 @@ Template6
 `;
   }
 
+  /**
+   * @deprecated
+   */
   static generate(context) {
     if (!context || typeof context !== "object") {
       throw new Error(

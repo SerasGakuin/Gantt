@@ -30,7 +30,7 @@ class GenHearingItems {
       // シートをクリアして生成中表示　TODO: 具体的なセッターのSpeedPlannerIOManagerへの移行
       this._clearPreviousResponses(currSpSheet);
       // AIに項目を配列で生成してもらう
-      const aiResponcesArr = GenHearingItems_ItemsGeneratorWithChatGPT.generate(contextProvider.getContext());
+      const aiResponcesArr = GenHearingItems_ItemsGeneratorWithClaude.generate(contextProvider.getContext());
       // 項目をセット　TODO: 具体的なセッターのSpeedPlannerIOManagerへの移行
       this._setAIOutputArrToSheet(currSpSheet, aiResponcesArr);
     } catch (e) {
