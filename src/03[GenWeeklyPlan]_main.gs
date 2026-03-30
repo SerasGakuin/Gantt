@@ -30,7 +30,7 @@ function week5Plan() {
  */
 function genericGenWeeklyPlanProdFunc(weekNum, spId = null) {
   if(spId !== null && typeof spId !== 'string'){
-    throw new Error("spIdはstringで渡すか渡さないかにする必要があります。");
+    throw new Error("spIdはstringで渡すか何も渡さないかのどちらかにする必要があります。渡されたもの："+String(spId));
   }
   const dependencies = getGenWeeklyPlanProdDependencies(spId);//本番用の依存関係
   GenWeeklyPlan.start(weekNum, dependencies);
