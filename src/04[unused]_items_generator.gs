@@ -1,3 +1,4 @@
+// 2026-03-30 つかってないが一応削除保留
 class GenHearingItems_ItemsGeneratorWithChatGPT {
   static get _apiKey() {
     return PropertiesService.getScriptProperties().getProperty("APIKEY");
