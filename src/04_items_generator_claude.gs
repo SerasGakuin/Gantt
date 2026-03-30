@@ -23,8 +23,8 @@ class GenHearingItems_ItemsGeneratorWithClaude {
 
   static _constructUserContent(prevItemsStr, lastTeachingMemo) {
     return [
-      `# Previous items\n${prevItemsStr}`,
-      `# Memo\n${lastTeachingMemo}\n\n## 出力`
+      `# 前回の生成内容(全文です)\n\n${prevItemsStr}`,
+      `# 面談メモ\n\n${lastTeachingMemo}\n\n## 出力`
     ].join('\n\n');
   }
 
@@ -214,7 +214,7 @@ Template6
 
 来月の部活の予定は？
 
-## それでは、質問の生成をお願いします。：
+## 「生成内容はこちらです」というような案内は生成しないでください。機械のように箇条書きで項目だけを生成してください。それでは、質問の生成をお願いします。：
 `;
   }
 }

@@ -42,9 +42,9 @@ class GenHearingItems_HearingContextProvider {
    */
   _buildPrevItemsStr_(sheet) {
     const values = sheet.getRange(this._prevItemsRangeA1).getValues(); // 2次元 [[...],[...]]
-    let prompt = 'ちなみに、先週の質問は以下のようなものでした： \n\n';
+    let prompt = '';
 
-    // 以前実装: i%2==0 の行だけ採用
+    // i%2==0 の行だけ採用
     let qNum = 1;
     for (let i = 0; i < values.length; i++) {
       if (i % 2 !== 0) continue;
@@ -65,4 +65,5 @@ class GenHearingItems_HearingContextProvider {
     const s = (v == null) ? '' : String(v).trim();
     return s;
   }
+  
 }
