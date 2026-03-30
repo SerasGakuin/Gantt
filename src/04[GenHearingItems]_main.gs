@@ -3,11 +3,17 @@
  * 
  * 毎週の面談のために作成される「ヒアリング項目」を自動作成するマクロです。
  * AIを利用して項目を生成します。
+ * 
+ * @param {string} spId - ヒアリング項目を作成したいスピードプランナーのid(将来的にdbになった場合はこのidをレコードカラムにすれば一貫性は保たれる。)
  */
-function genHearingItems() {
+function genHearingItems(spId = null) {
+  if(spId !== null && typeof spId !== 'string'){
+    throw new Error("スピードプランナーのidを指定する場合は、文字列型で指定してください。");
+  }
+  const currSpSheet = !!spId? SpreadsheetApp.openById(spId): SpreadsheetApp.getActiveSpreadsheet();
   // 前回までの実行履歴などのコンテキストを取得するクラス
-  const contextProvider = new GenHearingItems_HearingContextProvider();
-  GenHearingItems.run(contextProvider);
+  const contextProvider = new GenHearingItems_HearingContextProvider(currSpSheet);
+  GenHearingItems.run(contextProvider, currSpSheet);
 }
 
 // TODO: 具体的なセッターのSpeedPlannerIOManagerへの移行をしたい。
@@ -16,16 +22,19 @@ function genHearingItems() {
 
 class GenHearingItems {
 
-  static run(contextProvider) {
+  static run(contextProvider, currSpSheet) {
+    if(typeof contextProvider.getContext !== 'function'){
+      throw new Error("[内部バグ]不正なプロバイダオブジェクトです。");
+    }
     try {
       // シートをクリアして生成中表示　TODO: 具体的なセッターのSpeedPlannerIOManagerへの移行
-      this._clearPreviousResponses();
+      this._clearPreviousResponses(currSpSheet);
       // AIに項目を配列で生成してもらう
       const aiResponcesArr = GenHearingItems_ItemsGeneratorWithChatGPT.generate(contextProvider.getContext());
       // 項目をセット　TODO: 具体的なセッターのSpeedPlannerIOManagerへの移行
-      this._setAIOutputArrToSheet(aiResponcesArr);
+      this._setAIOutputArrToSheet(currSpSheet, aiResponcesArr);
     } catch (e) {
-      this._setAIOutputArrToSheet([`[${e.name || 'Error'}] ${e.message || e}`]);
+      this._setAIOutputArrToSheet(currSpSheet, [`[${e.name || 'Error'}] ${e.message || e}`]);
       console.error(e);
       throw e;
     }
@@ -36,10 +45,9 @@ class GenHearingItems {
    * TODO: 具体的なシート取得のSpeedPlannerIOManagerへの移行
    * @deprecated - SpeedPlannerIOManagerへの移行
    */
-  static get _sheet() {
-    if (this.__sheet) return this.__sheet;
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ヒアリング');
-    this.__sheet = sheet;
+  static _getSheet(currSpSheet) {
+    const sheet = currSpSheet.getSheetByName('ヒアリング');
+    if (!sheet) throw new Error("ヒアリングシートが見つかりません");
     return sheet;
   }
 
@@ -47,8 +55,8 @@ class GenHearingItems {
    * TODO: 具体的なセッターのSpeedPlannerIOManagerへの移行
    * @deprecated - SpeedPlannerIOManagerへの移行
    */
-  static _clearPreviousResponses() {
-    const sheet = this._sheet;
+  static _clearPreviousResponses(currSpSheet) {
+    const sheet = this._getSheet(currSpSheet);
     sheet.getRange("B3:B16").clearContent();
     sheet.getRange("B3").setValue("generating...");
   }
@@ -57,9 +65,8 @@ class GenHearingItems {
    * TODO: 具体的なセッターのSpeedPlannerIOManagerへの移行
    * @deprecated - SpeedPlannerIOManagerへの移行
    */
-  static _setAIOutputArrToSheet(contentArr) {
-    const sheet = this._sheet;
-    const setTargetRange = sheet.getRange("B3:B16");
+  static _setAIOutputArrToSheet(currSpSheet, contentArr) {
+    const setTargetRange = this._getSheet(currSpSheet).getRange("B3:B16");
 
     //　配列そのままでは詰まっているので一個ごとに改行を入れる
     const setSrcMat = [];

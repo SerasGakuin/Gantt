@@ -4,14 +4,16 @@
  * - 以前実装（A3:A16 と B1）を模倣
  */
 class GenHearingItems_HearingContextProvider {
-  constructor() {
-    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  constructor(spreadsheet = SpreadsheetApp.getActiveSpreadsheet()) {
+    if(!spreadsheet || (typeof spreadsheet.getRange !== 'function')){
+      throw new Error("有効なSpreadsheetApp.Spreadsheetを渡してください！")
+    } 
     this._ss = spreadsheet;
-    this._hearingSheetName = "ヒアリング";
+    this._hearingSheetName = 'ヒアリング';
 
     // 以前実装に合わせたレンジ
-    this._prevItemsRangeA1 = "A3:A16";
-    this._currentMemoCellA1 = "B1";
+    this._prevItemsRangeA1 = 'A3:A16';
+    this._currentMemoCellA1 = 'B1';
   }
 
   /**
@@ -30,8 +32,7 @@ class GenHearingItems_HearingContextProvider {
 
   _getHearingSheet_() {
     const sheet = this._ss.getSheetByName(this._hearingSheetName);
-    if (!sheet)
-      throw new Error(`シートが見つかりません: ${this._hearingSheetName}`);
+    if (!sheet) throw new Error(`シートが見つかりません: ${this._hearingSheetName}`);
     return sheet;
   }
 
@@ -41,7 +42,7 @@ class GenHearingItems_HearingContextProvider {
    */
   _buildPrevItemsStr_(sheet) {
     const values = sheet.getRange(this._prevItemsRangeA1).getValues(); // 2次元 [[...],[...]]
-    let prompt = "ちなみに、先週の質問は以下のようなものでした： \n\n";
+    let prompt = 'ちなみに、先週の質問は以下のようなものでした： \n\n';
 
     // 以前実装: i%2==0 の行だけ採用
     let qNum = 1;
@@ -49,8 +50,8 @@ class GenHearingItems_HearingContextProvider {
       if (i % 2 !== 0) continue;
 
       const v = values[i][0];
-      const s = v == null ? "" : String(v).trim();
-      if (s === "") continue;
+      const s = (v == null) ? '' : String(v).trim();
+      if (s === '') continue;
 
       prompt += `${qNum}. ${s}\n`;
       qNum++;
@@ -61,7 +62,7 @@ class GenHearingItems_HearingContextProvider {
 
   _getLastTeachingMemo_(sheet) {
     const v = sheet.getRange(this._currentMemoCellA1).getValue();
-    const s = v == null ? "" : String(v).trim();
+    const s = (v == null) ? '' : String(v).trim();
     return s;
   }
 }
