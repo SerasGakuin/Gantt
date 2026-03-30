@@ -13,7 +13,9 @@ function genHearingItems(spId = null) {
   const currSpSheet = !!spId? SpreadsheetApp.openById(spId): SpreadsheetApp.getActiveSpreadsheet();
   // 前回までの実行履歴などのコンテキストを取得するクラス
   const contextProvider = new GenHearingItems_HearingContextProvider(currSpSheet);
-  GenHearingItems.run(contextProvider, currSpSheet);
+  // コンテキストをうけとって項目の配列を生成する関数
+  const itemsGenFn = (ctx) => GenHearingItems_ItemsGeneratorWithClaude.generate(ctx);
+  GenHearingItems.run(contextProvider, itemsGenFn, currSpSheet);
 }
 
 // TODO: 具体的なセッターのSpeedPlannerIOManagerへの移行をしたい。
@@ -22,15 +24,20 @@ function genHearingItems(spId = null) {
 
 class GenHearingItems {
 
-  static run(contextProvider, currSpSheet) {
-    if(typeof contextProvider.getContext !== 'function'){
-      throw new Error("[内部バグ]不正なプロバイダオブジェクトです。");
+  static run(contextProvider, itemsGenFn, currSpSheet) {
+    if(!contextProvider || typeof contextProvider !== 'object'|| typeof contextProvider.getContext !== 'function'){
+      throw new Error("[内部バグ]不正なプロバイダオブジェクトです:"+String(contextProvider));
+    }else if(typeof itemsGenFn != 'function'|| itemsGenFn.length !== 1){
+      throw new Error("[内部バグ]不正な生成関数です:"+String(itemsGenFn));
     }
     try {
       // シートをクリアして生成中表示　TODO: 具体的なセッターのSpeedPlannerIOManagerへの移行
       this._clearPreviousResponses(currSpSheet);
       // AIに項目を配列で生成してもらう
-      const aiResponcesArr = GenHearingItems_ItemsGeneratorWithClaude.generate(contextProvider.getContext());
+      const aiResponcesArr = itemsGenFn(contextProvider.getContext());
+      if(!Array.isArray(aiResponcesArr)){
+        throw new Error("[内部バグ]項目生成関数の戻り値は配列である必要があります。実際の戻り値："+String(aiResponcesArr));
+      }
       // 項目をセット　TODO: 具体的なセッターのSpeedPlannerIOManagerへの移行
       this._setAIOutputArrToSheet(currSpSheet, aiResponcesArr);
     } catch (e) {
