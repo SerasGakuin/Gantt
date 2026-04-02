@@ -127,8 +127,12 @@ class GenWeeklyPlan {
 
     //「目安処理量」を取得して、整数に丸めたうえでフラット配列化。
     const valuesToAddArr = spIOManager.getActiveMaterialsProcessAmount(weekNum).map(v => {
-      const num = Number(v[0]);
-      return Number.isFinite(num) ? Math.max(0, Math.round(num)) : 0;
+      // number型に変換。
+      const num = Number(v);
+      // 正の数でないなら0にする。JSの仕様上numがNaNであっても条件は偽に。
+      const positiveNum = num > 0 ? num : 0; 
+      // 基本的には四捨五入。ただし、0以外は必ず1以上にする。切り上げのほうが課題量としては自然では？といった疑問があると思いますが、運用実態では単語帳などで四捨五入でないときりの悪い数字になることが多いのです。
+      return (positiveNum === 0) ? 0 : Math.max(1, Math.round(positiveNum));
     });
 
     // 教材ごとにコンテクストに格納する。
